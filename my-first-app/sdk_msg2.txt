@@ -1,0 +1,120 @@
+# @evenrealities/even_hub_sdk
+
+TypeScript SDK for Even App WebView pages.
+
+[![npm version](https://img.shields.io/npm/v/@evenrealities/even_hub_sdk.svg)](https://www.npmjs.com/package/@evenrealities/even_hub_sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org/)
+
+**English** | [中文](README.zh-CN.md)
+
+## ⚡️ Quick Start
+
+```bash
+npm install @evenrealities/even_hub_sdk
+```
+
+```ts
+import { waitForEvenAppBridge } from '@evenrealities/even_hub_sdk';
+
+const bridge = await waitForEvenAppBridge();
+
+const user = await bridge.getUserInfo();
+const device = await bridge.getDeviceInfo();
+
+await bridge.setLocalStorage('theme', 'dark');
+const theme = await bridge.getLocalStorage('theme');
+
+console.log(user.name, device?.model, theme);
+```
+
+Use this SDK when your page runs inside Even App WebView and needs:
+
+- App bridge calls: user, device, storage.
+- App capabilities: location, album, camera.
+- Glasses UI: startup containers, rebuild, contextual menus, text/image updates.
+- Sensors and events: MIC, IMU, launch source, device status.
+
+## 📦 Install
+
+```bash
+npm install @evenrealities/even_hub_sdk
+# or
+pnpm add @evenrealities/even_hub_sdk
+# or
+yarn add @evenrealities/even_hub_sdk
+```
+
+Requirements:
+
+- SDK version: `0.0.15`
+- Even App: `2.2.10` or later
+- Node.js: `^20.0.0 || >=22.0.0`
+- Runtime: Even App WebView with `window.flutter_inappwebview.callHandler`
+
+## 🔧 Common Usage
+
+### Launch Source
+
+The host pushes launch source once after WebView loading completes.
+
+```ts
+const bridge = await waitForEvenAppBridge();
+
+const unsubscribe = bridge.onLaunchSource((source) => {
+  if (source === 'glassesMenu') {
+    console.log('Opened from glasses menu');
+  }
+});
+
+// unsubscribe();
+```
+
+Values:
+
+- `appMenu`
+- `glassesMenu`
+
+### Device Status
+
+```ts
+import {
+  DeviceConnectType,
+  waitForEvenAppBridge,
+} from '@evenrealities/even_hub_sdk';
+
+const bridge = await waitForEvenAppBridge();
+
+const unsubscribe = bridge.onDeviceStatusChanged((status) => {
+  if (status.connectType === DeviceConnectType.Connected) {
+    console.log('Battery:', status.batteryLevel);
+  }
+});
+
+// unsubscribe();
+```
+
+### App Location
+
+```ts
+import {
+  AppLocationAccuracy,
+  waitForEvenAppBridge,
+} from '@evenrealities/even_hub_sdk';
+
+const bridge = await waitForEvenAppBridge();
+
+const location = await bridge.getAppLocation({
+  accuracy: AppLocationAccuracy.High,
+  timeoutMs: 5000,
+});
+
+if (location) {
+  console.log(location.latitude, location.longitude);
+}
+```
+
+Continuous updates:
+
+```ts
+await bridge.startAppLocationUpdates({

@@ -1,0 +1,117 @@
+occurrences at lines: 379,389,430,502
+--- context around line 379 ---
+
+Handle long press and release:
+
+```ts
+const unsubscribePress = bridge.onEvenHubEvent((event) => {
+  const pressEvent = event.sysEvent;
+  if (!pressEvent) return;
+
+  if (pressEvent.eventType === OsEventTypeList.LONG_PRESS_EVENT) {
+    console.log('Long press started from', pressEvent.eventSource);
+  } else if (pressEvent.eventType === OsEventTypeList.LONG_PRESS_RELEASE_EVENT) {
+    console.log('Long press released from', pressEvent.eventSource);
+  }
+});
+
+// unsubscribePress();
+```
+
+`LONG_PRESS_EVENT` has PB value `9`; `LONG_PRESS_RELEASE_EVENT` has PB value `10`. Current source-aware pushes are delivered as `sysEvent`, whose `eventSource` preserves the PB `EventSourceType` (`GLASSES_R`, `RING`, or `GLASSES_L`) rather than dropping the input origin.
+
+Listen for list, text, and system events:
+
+```ts
+const unsubscribeHub = bridge.onEvenHubEvent((event) => {
+  if (event.listEvent) {
+    console.log('Selected:', event.listEvent.currentSelectItemName);
+  }
+  if (event.textEvent) {
+--- context around line 389 ---
+  } else if (pressEvent.eventType === OsEventTypeList.LONG_PRESS_RELEASE_EVENT) {
+    console.log('Long press released from', pressEvent.eventSource);
+  }
+});
+
+// unsubscribePress();
+```
+
+`LONG_PRESS_EVENT` has PB value `9`; `LONG_PRESS_RELEASE_EVENT` has PB value `10`. Current source-aware pushes are delivered as `sysEvent`, whose `eventSource` preserves the PB `EventSourceType` (`GLASSES_R`, `RING`, or `GLASSES_L`) rather than dropping the input origin.
+
+Listen for list, text, and system events:
+
+```ts
+const unsubscribeHub = bridge.onEvenHubEvent((event) => {
+  if (event.listEvent) {
+    console.log('Selected:', event.listEvent.currentSelectItemName);
+  }
+  if (event.textEvent) {
+    console.log('Text event:', event.textEvent.containerName);
+  }
+  if (event.sysEvent) {
+    console.log('System event:', event.sysEvent.eventType);
+  }
+});
+
+// unsubscribeHub();
+```
+
+--- context around line 430 ---
+- Image containers need `updateImageRawData` after creation.
+- `zOrderIndex` is optional only when every container on the same page omits it, which keeps old SDK pages compatible.
+- If any container on the same page sets `zOrderIndex`, every list/text/image container on that page must set it.
+- `zOrderIndex` values must be unique on the same page; larger values are rendered closer to the front.
+- When these `zOrderIndex` rules are violated, the SDK logs an `EvenHubPageContainerValidationErrorCode` error before calling native. `createStartUpPageContainer` returns `StartUpPageCreateResult.invalid`; `rebuildPageContainer` returns `false`.
+- `menuObject.menuItems`: max `10`; each top-level `itemID` must be non-zero and unique.
+- Menu `itemName`: max `32` UTF-8 bytes.
+- Invalid menu count, ID, or name is rejected before calling native. Rebuild without `menuObject` clears the custom menu and restores default registration.
+- Long press and release remain regular list/text/sys events and are exposed as `OsEventTypeList.LONG_PRESS_EVENT` and `OsEventTypeList.LONG_PRESS_RELEASE_EVENT`.
+
+## 📚 API Map
+
+### Bridge
+
+| API | Returns |
+| --- | --- |
+| `waitForEvenAppBridge()` | `Promise<EvenAppBridge>` |
+| `EvenAppBridge.getInstance()` | `EvenAppBridge` |
+| `callEvenApp(method, params?)` | `Promise<any>` |
+
+### App
+
+| API | Returns |
+| --- | --- |
+| `getUserInfo()` | `Promise<UserInfo>` |
+| `getDeviceInfo()` | `Promise<DeviceInfo \| null>` |
+| `setLocalStorage(key, value)` | `Promise<boolean>` |
+| `getLocalStorage(key)` | `Promise<string>` |
+--- context around line 502 ---
+- Long-press and release `sysEvent` payloads preserve `eventSource`, allowing callers to distinguish the right temple, ring, and left temple.
+
+### 0.0.14
+
+- Raised the minimum supported Even App version to `2.2.9`.
+- Added first-level contextual menu models on startup/rebuild containers.
+- Added first-level `menuItemClickEvent` parsing through `onEvenHubEvent`.
+- Added SDK-side first-level menu validation for count, ID uniqueness, and UTF-8 name length.
+- Added `LONG_PRESS_EVENT(9)` and `LONG_PRESS_RELEASE_EVENT(10)` parsing for list, text, and system events.
+- Added optional `textColor` support for text containers and incremental text updates, with brightness levels from `0` to `4`.
+- Added processed audio `direction` and `AudioSpeakerRole`; phone MIC and older Host payloads safely fall back to `null` and `Unknown`.
+
+### 0.0.13
+
+- Added minimum supported Even App version metadata. The minimum supported version is `2.2.6`.
+
+### 0.0.12
+
+- Added `zOrderIndex` support for list, text, and image containers to control front/back stacking order across multiple page containers.
+- Image raw data updates now use LZ4 compression internally, reducing transfer size while keeping encode/decode fast for lower image update latency.
+
+### 0.0.11
+
+- Added App location APIs: one-shot location and continuous updates.
+- Added App album image picker, single-select only.
+- Added App camera capture API.
+- Added MIC source selection: `glasses` or `phone`.
+
