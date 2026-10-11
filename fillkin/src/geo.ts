@@ -1,5 +1,8 @@
 // Fillkin - geo helpers: distance, units, and place-name lookup.
 
+import { Capacitor } from '@capacitor/core';
+import { Geolocation } from '@capacitor/geolocation';
+
 export interface LatLon {
   lat: number;
   lon: number;
@@ -30,7 +33,19 @@ export function radiusToMeters(radius: number, units: Units): number {
   return units === 'mi' ? radius * 1609.344 : radius * 1000;
 }
 
-export function currentPosition(): Promise<LatLon> {
+export async function currentPosition(): Promise<LatLon> {
+  if (Capacitor.isNativePlatform()) {
+    // Native app: use the system location service and its permission prompt.
+    let status = await Geolocation.checkPermissions();
+    if (status.location === 'prompt' || status.location === 'prompt-with-rationale') {
+      status = await Geolocation.requestPermissions({ permissions: ['location'] });
+    }
+    if (status.location === 'denied') {
+      throw new Error('Location is off for Fillkin. Turn it on in Settings › Fillkin › Location.');
+    }
+    const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+    return { lat: pos.coords.latitude, lon: pos.coords.longitude };
+  }
   return new Promise((resolve, reject) => {
     if (!('geolocation' in navigator)) {
       reject(new Error('Geolocation is not supported by this browser.'));
@@ -64,6 +79,14 @@ export async function geocode(query: string): Promise<Place | null> {
   };
 }
 
+function isIOS(): boolean {
+  if (Capacitor.getPlatform() === 'ios') return true;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+// Apple Maps on iPhone/iPad, Google Maps everywhere else.
 export function directionsUrl(to: LatLon): string {
+  if (isIOS()) return `https://maps.apple.com/?daddr=${to.lat},${to.lon}`;
   return `https://www.google.com/maps/dir/?api=1&destination=${to.lat},${to.lon}`;
 }

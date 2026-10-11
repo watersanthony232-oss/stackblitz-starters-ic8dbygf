@@ -138,6 +138,14 @@ function formatPrice(p: number): string {
   return `${settings.currency}${p.toFixed(p < 10 ? 2 : 1)}`;
 }
 
+function errorMessage(e: unknown, fallback: string): string {
+  // fetch() rejects with a TypeError when there's no connection.
+  if (!navigator.onLine || e instanceof TypeError) {
+    return "Can't reach the internet. Check your connection and try again.";
+  }
+  return (e as Error)?.message || fallback;
+}
+
 function setStatus(text: string, kind: 'info' | 'error' | 'loading' = 'info') {
   statusEl.className = `status status-${kind}`;
   statusEl.textContent = text;
@@ -256,7 +264,7 @@ async function search() {
   } catch (e) {
     if (abort.signal.aborted) return;
     stations = [];
-    setStatus((e as Error).message || 'Search failed.', 'error');
+    setStatus(errorMessage(e, 'Search failed.'), 'error');
   }
   render();
 }
@@ -269,7 +277,7 @@ async function useMyLocation() {
     qEl.value = '';
     await search();
   } catch (e) {
-    setStatus(`${(e as Error).message} Search for a place instead.`, 'error');
+    setStatus(`${(e as Error)?.message || 'Could not get your location.'} You can search for a place instead.`, 'error');
   }
 }
 
@@ -304,7 +312,7 @@ $<HTMLFormElement>('#search').addEventListener('submit', async (e) => {
     center = place;
     await search();
   } catch (err) {
-    setStatus((err as Error).message, 'error');
+    setStatus(errorMessage(err, 'Place search failed.'), 'error');
   }
 });
 
