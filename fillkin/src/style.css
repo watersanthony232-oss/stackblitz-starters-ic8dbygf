@@ -49,6 +49,9 @@ body {
 
 button, input, select { font: inherit; color: inherit; }
 
+/* iOS Safari zooms the page when focusing a field with text under 16px. */
+input, select { font-size: 16px; }
+
 .topbar {
   display: flex;
   align-items: center;
