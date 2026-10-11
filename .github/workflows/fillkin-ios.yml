@@ -1,0 +1,78 @@
+name: Fillkin iOS
+
+on:
+  push:
+    paths: ['fillkin/**', '.github/workflows/fillkin-ios.yml']
+  pull_request:
+    paths: ['fillkin/**', '.github/workflows/fillkin-ios.yml']
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: fillkin
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fillkin/package-lock.json
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build web app and copy into iOS project
+        run: npm run ios:sync
+
+      - name: Build iOS app for the simulator
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Run in an iPhone simulator and take screenshots
+        run: |
+          set -euo pipefail
+          DEVICE=$(xcrun simctl list devices available -j \
+            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
+          echo "Using simulator $DEVICE"
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          BUNDLE=io.github.watersanthony232.fillkin
+          xcrun simctl install "$DEVICE" build/Build/Products/Debug-iphonesimulator/App.app
+          # Pretend to be in central London and pre-approve location access.
+          xcrun simctl location "$DEVICE" set 51.5074,-0.1278
+          xcrun simctl privacy "$DEVICE" grant location "$BUNDLE"
+          mkdir -p screenshots
+          xcrun simctl launch "$DEVICE" "$BUNDLE"
+          sleep 8
+          xcrun simctl io "$DEVICE" screenshot screenshots/1-launch.png
+          sleep 25
+          xcrun simctl io "$DEVICE" screenshot screenshots/2-results.png
+          # The app must still be running (not crashed).
+          xcrun simctl spawn "$DEVICE" launchctl list | grep -q "$BUNDLE"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fillkin-ios-screenshots
+          path: fillkin/screenshots
+          if-no-files-found: ignore

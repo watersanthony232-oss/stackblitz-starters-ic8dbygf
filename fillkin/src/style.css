@@ -37,6 +37,9 @@ body {
   background: var(--bg);
   color: var(--text);
   font: 15px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Keep content clear of the notch and home indicator. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  -webkit-tap-highlight-color: transparent;
 }
 
 #app {
@@ -48,6 +51,9 @@ body {
 }
 
 button, input, select { font: inherit; color: inherit; }
+
+/* iOS Safari zooms the page when focusing a field with text under 16px. */
+input, select { font-size: 16px; }
 
 .topbar {
   display: flex;
