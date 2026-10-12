@@ -66,7 +66,9 @@ jobs:
           sleep 25
           xcrun simctl io "$DEVICE" screenshot screenshots/2-results.png
           # The app must still be running (not crashed).
-          xcrun simctl spawn "$DEVICE" launchctl list | grep -q "$BUNDLE"
+          # (Save the list first: grep -q stopping early would break the pipe under pipefail.)
+          xcrun simctl spawn "$DEVICE" launchctl list > running.txt
+          grep -q "$BUNDLE" running.txt
 
       - uses: actions/upload-artifact@v4
         if: always()
