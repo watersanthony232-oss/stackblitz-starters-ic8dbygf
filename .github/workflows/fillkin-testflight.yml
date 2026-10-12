@@ -49,10 +49,29 @@ jobs:
       - name: Write App Store Connect API key
         run: |
           mkdir -p "$RUNNER_TEMP/asc"
-          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/asc/AuthKey.p8"
-          echo "ASC_KEY_PATH=$RUNNER_TEMP/asc/AuthKey.p8" >> "$GITHUB_ENV"
+          key="$RUNNER_TEMP/asc/AuthKey.p8"
+          # Rebuild a clean PEM from whatever was pasted: drop Windows line endings,
+          # the BEGIN/END lines and all whitespace, then re-wrap the base64 body.
+          body=$(printf '%s' "$ASC_KEY_P8" | tr -d '\r' \
+            | sed -e 's/-----BEGIN [A-Z ]*-----//g' -e 's/-----END [A-Z ]*-----//g' \
+            | tr -d ' \t\n')
+          {
+            echo '-----BEGIN PRIVATE KEY-----'
+            printf '%s' "$body" | fold -w 64
+            echo
+            echo '-----END PRIVATE KEY-----'
+          } > "$key"
+          if ! openssl pkey -in "$key" -noout 2>/dev/null; then
+            echo "::error::The ASC_KEY_P8 secret is not a valid .p8 key (found ${#body} key characters; a real one has about 200). Open the AuthKey_XXXXXXXXXX.p8 file from Apple in Notepad, press Ctrl+A then Ctrl+C, and paste it as the ASC_KEY_P8 secret again."
+            exit 1
+          fi
+          echo "API key looks valid."
+          echo "ASC_KEY_PATH=$key" >> "$GITHUB_ENV"
 
-      - name: Archive (signed automatically with the API key)
+      # Archive unsigned: a signed archive would ask Apple for a *development*
+      # profile, which needs a registered iPhone. The export step below signs
+      # the app for App Store distribution instead (no devices needed).
+      - name: Archive
         run: |
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -60,16 +79,12 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Fillkin.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             archive
 
-      - name: Upload to App Store Connect / TestFlight
+      - name: Sign for App Store and upload to TestFlight
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
@@ -93,6 +108,18 @@ jobs:
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
           echo "Uploaded build ${{ github.run_number }}. It appears in App Store Connect -> TestFlight after processing (~15 min)."
+
+      - name: Show Apple's detailed export log (on failure)
+        if: failure()
+        run: |
+          for d in "${TMPDIR:-/tmp}"/*.xcdistributionlogs; do
+            [ -d "$d" ] || continue
+            for f in "$d"/IDEDistribution.critical.log "$d"/IDEDistribution.standard.log; do
+              [ -f "$f" ] || continue
+              echo "===== $f"
+              grep -iE "error|fail|denied|not found|could not|unable|bundle|team|agreement|status code|response" "$f" | tail -n 80
+            done
+          done
 
       - name: Remove API key
         if: always()
