@@ -59,9 +59,6 @@ jobs:
           xcrun simctl bootstatus "$DEVICE" -b
           BUNDLE=io.github.watersanthony232.fillkin
           xcrun simctl install "$DEVICE" build/Build/Products/Debug-iphonesimulator/App.app
-          # Pretend to be in central London and pre-approve location access.
-          xcrun simctl location "$DEVICE" set 51.5074,-0.1278
-          xcrun simctl privacy "$DEVICE" grant location "$BUNDLE"
           mkdir -p screenshots
           xcrun simctl launch "$DEVICE" "$BUNDLE"
           sleep 8
