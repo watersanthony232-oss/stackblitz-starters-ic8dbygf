@@ -1,29 +1,30 @@
 # Fillkin
 
-Find nearby **fuel stations** and **EV chargers**, see them on a map, and keep track of prices.
+*Sick of filling out forms? Fillkin does it for you.*
 
-- **Near me** (browser geolocation) or search any town, postcode or address
-- Toggle between ⛽ Fuel and ⚡ EV charging
-- Filter by radius (miles or km) and fuel type (petrol, diesel, LPG, E85)
-- EV chargers show connector types (CCS, CHAdeMO, Type 2, …), counts and max power
-- Opening hours, brand/operator, address, one-tap directions
-- ★ Favourites, and price reports you enter yourself, sortable by cheapest
-  (saved in your browser's localStorage and dropped after 14 days)
+Fillkin, from Aurora Glance (part of Toz Industries): fill in your **Fillkin card** once, with a card for each of your children too, then tap **Enter with Fillkin** on a form and choose exactly what to share.
 
-Station data comes from OpenStreetMap via the free Overpass API; place search uses Nominatim. No API keys are needed.
+This is the **app prototype** (restored from the 4 October 2026 version):
+
+- Welcome tour, and a lock screen with a 10-digit passcode or Face ID / fingerprint
+- **Cards:** your card plus children's cards, with photo, colour, "% filled" and reminders to check them
+- **Share:** pick which sections to share and which bank account
+- **Enter with Fillkin** demo on pretend websites (shop, school, doctor, car insurance), on this phone, on a laptop by QR code, or by tapping a reader
+- **History** of what was shared, and **Settings** (locked backup, reminders, iPhone/Android style, text size)
+
+It uses sample details only, and nothing is saved yet.
 
 ## Run
 
 ```sh
 npm install
 npm run dev      # dev server
-npm test         # unit tests
-npm run build    # type-check + production build into dist/
+npm run build    # production build into dist/
 ```
 
 ## iPhone app (iOS)
 
-The `ios/` folder is a native Xcode project made with [Capacitor](https://capacitorjs.com). It wraps the same web code, with native location and Apple Maps directions.
+The `ios/` folder is a native Xcode project made with [Capacitor](https://capacitorjs.com). It wraps the same web page.
 
 You need a Mac with Xcode (from the Mac App Store) and an [Apple Developer account](https://developer.apple.com/programs/) ($99/year) to put it on an iPhone or in the App Store.
 
@@ -35,7 +36,7 @@ npm install
 npm run ios          # builds the web app, copies it into ios/, and opens Xcode
 ```
 
-In Xcode, pick an iPhone simulator at the top and press ▶ Run. To fake a location in the simulator: **Features › Location › Custom Location…**
+In Xcode, pick an iPhone simulator at the top and press ▶ Run.
 
 After changing any code in `src/`, run `npm run ios:sync` and press ▶ again.
 
@@ -48,7 +49,7 @@ After changing any code in `src/`, run `npm run ios:sync` and press ▶ again.
 4. When the Organizer window opens, click **Distribute App › App Store Connect › Upload**.
 5. After it processes (~15 min), add testers under **TestFlight** in App Store Connect, or fill in the store listing (screenshots, description, privacy details) and **Submit for Review**.
 
-For the App Store privacy questions: Fillkin uses location only on the device to search for nearby stations, sends the search area to OpenStreetMap servers, and doesn't collect accounts, tracking or analytics.
+For the App Store privacy questions: the prototype keeps everything on the device and doesn't collect accounts, tracking or analytics.
 
 The app icon and launch screen are generated from `assets/` with `npx capacitor-assets generate --ios`.
 

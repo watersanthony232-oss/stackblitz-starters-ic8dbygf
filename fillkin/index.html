@@ -1,14 +1,817 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0f766e" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <title>Fillkin</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fillkin – app prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;0,900;1,400&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F3F8; --surface:#FFFFFF; --ink:#141A3A; --muted:#6B7290; --line:#E1E4EF;
+  --brand:#3A3FB8; --brand-ink:#FFFFFF; --fill:#27B894; --sun:#FFC94A; --warn:#C2334D;
+  --card-a:#3A3FB8; --card-b:#5A2FA8; --bar:rgba(248,249,252,.88); --off:#D9DCE6;
+  box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#000000; --surface:#1C1C24; --ink:#F2F3FF; --muted:#9A9FBB; --line:#2E3044;
+    --brand:#8387FF; --brand-ink:#0E1230; --fill:#3FD9B0; --sun:#FFD36B; --warn:#FF7A90;
+    --card-a:#3438A8; --card-b:#5B2FB0; --bar:rgba(22,22,30,.88); --off:#3A3C50;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#000000; --surface:#1C1C24; --ink:#F2F3FF; --muted:#9A9FBB; --line:#2E3044;
+  --brand:#8387FF; --brand-ink:#0E1230; --fill:#3FD9B0; --sun:#FFD36B; --warn:#FF7A90;
+  --card-a:#3438A8; --card-b:#5B2FB0; --bar:rgba(22,22,30,.88); --off:#3A3C50;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Roboto,"Segoe UI",Arial,sans-serif;font-size:17px;line-height:1.45}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+
+/* ---------- Text size (set in Settings) ---------- */
+#app,#tabs,.sheet{zoom:var(--z,1.15)}
+.seg button{white-space:normal;line-height:1.2}
+/* ---------- Tour / history / backup ---------- */
+.tour{display:flex;flex-direction:column;min-height:100%;text-align:center;padding-top:8px}
+.tour .skip{align-self:flex-end;background:none;border:none;color:var(--brand);font-weight:500;font-size:16px;padding:4px 0}
+.tour .art{width:150px;height:150px;margin:28px auto 22px;border-radius:36px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--brand)}
+.tour .art svg{width:84px;height:84px}
+.tour h1{font-size:28px;font-weight:900;letter-spacing:-.6px;line-height:1.15;margin:0 0 10px}
+.tour p{color:var(--muted);margin:0 auto;max-width:290px}
+.tdots{display:flex;gap:8px;justify-content:center;margin:26px 0 18px}
+.tdots i{width:8px;height:8px;border-radius:4px;background:var(--off);transition:width .25s}
+.tdots i.on{width:22px;background:var(--brand)}
+.hist{padding:11px 16px;position:relative}
+.hist+.hist::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:1px solid var(--line)}
+.hist b{display:block;font-weight:500}
+.hist small{display:block;color:var(--muted);font-size:14px}
+.emptybox{text-align:center;color:var(--muted);padding:28px 20px}
+.okline{color:var(--fill);font-weight:700}
+.errline{color:var(--warn);font-size:14px;margin:6px 0 0}
+/* ---------- Phone shell ---------- */
+.phone{height:100%;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.status,.island{display:none}
+.scroll{flex:1;overflow-y:auto;padding:calc(env(safe-area-inset-top,0px) + 8px) 20px 32px}
+.tabbar{display:flex;justify-content:space-around;border-top:1px solid var(--line);background:var(--bar);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:6px 0 calc(env(safe-area-inset-bottom,0px) + 6px)}
+.tabbar button{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted);padding:4px 8px;flex:1}
+.tabbar button[aria-current="page"]{color:var(--brand)}
+.tabbar svg{width:26px;height:26px}
+@media (min-width:560px){
+  body{display:flex;align-items:center;justify-content:center;padding:24px 0;background:linear-gradient(160deg,#DDE2F2,#B9C0DE)}
+  .phone{width:393px;height:852px;max-height:calc(100vh - 48px);border-radius:56px;border:12px solid #17171C;
+    box-shadow:0 30px 60px rgba(20,26,58,.35),0 0 0 2px #3A3A44}
+  .island{display:block;position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:35px;border-radius:20px;background:#000;z-index:6}
+  .status{display:flex;justify-content:space-between;align-items:center;height:52px;padding:6px 30px 0 34px;font-weight:700;font-size:16px;flex-shrink:0}
+  .status svg{height:13px;margin-left:5px}
+  .scroll{padding-top:4px}
+  .tabbar{padding-bottom:22px}
+}
+
+/* ---------- Text ---------- */
+.big{font-size:34px;font-weight:700;letter-spacing:-.6px;margin:8px 0 4px;line-height:1.1}
+.sub{color:var(--muted);margin:0 0 18px;font-size:15px}
+.note{font-size:13px;color:var(--muted);margin:8px 16px 18px}
+.grouphead{font-size:13px;color:var(--muted);margin:18px 16px 6px}
+
+/* ---------- Lock ---------- */
+.lock{text-align:center;padding-top:0}
+.hook{font-weight:900;font-size:30px;line-height:1.1;letter-spacing:-.8px;margin:2px 0 12px}
+.mark{width:60px;height:60px;margin:0 auto 10px;border-radius:15px;background:var(--surface);border:3px solid var(--brand);position:relative;overflow:hidden}
+.mark::after{content:"";position:absolute;left:0;right:0;bottom:0;height:62%;background:var(--fill);animation:fillup 1.4s ease-out}
+@keyframes fillup{from{height:0}}
+.wordmark{font-weight:900;font-size:42px;letter-spacing:-1.5px;margin:0;line-height:1}
+.slogan{font-weight:300;font-style:italic;color:var(--muted);margin:6px 0 20px}
+.lock h2{font-weight:500;font-size:18px;margin:0 0 12px}
+.dots{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.dots span{width:13px;height:13px;border-radius:50%;border:2px solid var(--brand)}
+.dots span.on{background:var(--brand)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.msg{min-height:22px;font-size:14px;color:var(--warn);margin:0 0 8px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 22px;max-width:270px;margin:0 auto}
+.pad button{aspect-ratio:1;border-radius:50%;border:none;background:var(--surface);font-size:28px;font-weight:300}
+.pad button.small{font-size:13px;font-weight:500;color:var(--brand);background:none}
+.pad button.small svg{width:34px;height:34px;display:block;margin:0 auto 2px}
+
+/* Face ID overlay */
+.faceid{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35)}
+.faceid div{width:150px;height:150px;border-radius:32px;background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-weight:500;font-size:15px}
+.faceid svg{width:64px;height:64px;color:var(--brand)}
+.faceid .scan{animation:pulse .9s ease-in-out}
+@keyframes pulse{50%{transform:scale(.88)}}
+.faceid .done{color:var(--fill)}
+
+/* ---------- Cards ---------- */
+.kcard{display:block;width:100%;text-align:left;border:none;border-radius:20px;padding:18px 20px;margin-bottom:14px;color:#fff;
+  background:linear-gradient(135deg,var(--card-a),var(--card-b))}
+.kcard{position:relative;overflow:hidden}
+.kcard::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-radial-gradient(circle at 115% -20%,rgba(255,255,255,.08) 0 1.5px,transparent 1.5px 8px)}
+.kcard>*{position:relative}
+.kcard .kind,.kcard .nm{padding-right:72px}
+.kcard .ava{position:absolute;top:16px;right:18px;width:60px;height:60px;border-radius:50%;border:3px solid rgba(255,255,255,.85);
+  background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:21px;overflow:hidden}
+.kcard .ava img{width:100%;height:100%;object-fit:cover}
+.kcard .logo{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;opacity:.9;margin-bottom:6px}
+.kcard .logo i{width:14px;height:14px;border-radius:4px;border:2px solid #fff;position:relative;overflow:hidden}
+.kcard .logo i::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:#fff}
+.custom{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-4px 0 4px}
+.photobtn{color:var(--brand);font-weight:500;font-size:15px;cursor:pointer;padding:6px 0}
+.photobtn:focus-within{outline:3px solid var(--sun);outline-offset:2px;border-radius:6px}
+.swatches{display:flex;gap:10px}
+.swatches button{width:30px;height:30px;border-radius:50%;border:3px solid var(--bg);box-shadow:0 0 0 2px var(--line);padding:0}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.kcard .kind{font-size:13px;opacity:.85}
+.kcard .nm{font-size:24px;font-weight:700;margin:2px 0 14px}
+.meter{height:10px;border-radius:5px;background:rgba(255,255,255,.25);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--sun);border-radius:5px;transition:width .6s}
+.kcard .pct{font-size:13px;margin-top:6px;opacity:.9}
+.add{width:100%;padding:14px;border-radius:14px;border:2px dashed var(--line);background:none;font-weight:500;color:var(--brand)}
+
+/* ---------- Grouped lists (iPhone style) ---------- */
+.back{background:none;border:none;color:var(--brand);font-size:17px;padding:4px 0;display:flex;align-items:center;gap:2px}
+.back svg{width:12px;height:20px}
+.navrow{display:flex;justify-content:space-between;align-items:center;min-height:40px}
+.group{background:var(--surface);border-radius:12px;overflow:hidden}
+.sec{margin-bottom:6px}
+.sec header{display:flex;justify-content:space-between;align-items:flex-end;margin:16px 16px 6px}
+.sec h3{margin:0;font-size:13px;font-weight:500;color:var(--muted)}
+.link{background:none;border:none;color:var(--brand);font-weight:500;font-size:15px;padding:0}
+.row{display:flex;justify-content:space-between;gap:12px;padding:11px 16px;font-size:16px;position:relative}
+.row+.row::before,.bank+.bank::before,.choice+.choice::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:1px solid var(--line)}
+.row span:first-child{color:var(--ink)}
+.row span:last-child{text-align:right;color:var(--muted)}
+.empty{font-style:italic}
+.edit{padding:4px 16px 16px}
+label.f{display:block;font-size:13px;color:var(--muted);margin:12px 0 4px}
+input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:17px}
+.dob{display:flex;gap:8px;align-items:center}
+.dob input{width:62px;text-align:center}
+.dob input.y{width:86px}
+.dob span{color:var(--muted)}
+.btns{display:flex;gap:10px;margin-top:14px}
+.primary{background:var(--brand);color:var(--brand-ink);border:none;border-radius:12px;padding:12px 18px;font-weight:700}
+.primary.wide{width:100%;padding:15px;font-size:17px;border-radius:14px;margin-top:18px}
+.secondary{background:none;border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:500}
+.bank{padding:11px 16px;position:relative}
+.bank b{display:block;font-weight:500}
+.bank small{color:var(--muted)}
+.mono{font-family:"Roboto Mono",Consolas,monospace}
+.bankedit{border:1px solid var(--line);border-radius:12px;padding:2px 12px 12px;margin-top:10px}
+.rm{color:var(--warn);margin-top:10px}
+
+/* iPhone switches */
+.choice{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;position:relative;cursor:pointer}
+.switch{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:16px;background:var(--off);position:relative;flex-shrink:0;cursor:pointer;transition:background .2s;margin:0}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:transform .2s}
+.switch:checked{background:var(--fill)}
+.switch:checked::after{transform:translateX(20px)}
+.radio{appearance:none;-webkit-appearance:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--off);flex-shrink:0;margin:0;cursor:pointer}
+.radio:checked{border:7px solid var(--brand)}
+
+/* Segmented control */
+.seg{display:flex;background:var(--off);border-radius:9px;padding:2px;margin-bottom:6px}
+.seg button{flex:1;border:none;background:none;border-radius:7px;padding:7px 4px;font-size:14px;font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+
+/* Demo form */
+.shop{background:var(--surface);border-radius:16px;padding:16px;border:1px solid var(--line)}
+.shop h3{margin:0 0 2px}
+.shop input.t.filled{border-color:var(--fill)}
+.withbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin:14px 0 4px;padding:13px;border-radius:12px;
+  border:2px solid var(--ink);background:var(--surface);font-weight:700;font-size:17px}
+.withbtn .mini{width:22px;height:22px;border-radius:6px;border:2px solid var(--brand);position:relative;overflow:hidden}
+.withbtn .mini::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:var(--fill)}
+.sheetwrap{position:absolute;inset:0;background:rgba(0,0,0,.35);z-index:8;display:flex;align-items:flex-end}
+.sheet{background:var(--bg);width:100%;border-radius:16px 16px 0 0;padding:8px 18px calc(env(safe-area-inset-bottom,0px) + 22px);max-height:88%;overflow-y:auto;animation:up .28s ease-out}
+@keyframes up{from{transform:translateY(100%)}}
+.handle{width:38px;height:5px;border-radius:3px;background:var(--off);margin:0 auto 12px}
+.sheethead{display:flex;align-items:center;gap:8px;font-weight:700}
+.sheethead .mini,.withbtn .mini{width:22px;height:22px;border-radius:6px;border:2px solid var(--brand);position:relative;overflow:hidden;display:inline-block}
+.sheethead .mini::after{content:"";position:absolute;left:0;right:0;bottom:0;height:60%;background:var(--fill)}
+.sheettitle{font-size:20px;font-weight:700;margin:10px 0 2px;line-height:1.2}
+.primary.wide svg{width:22px;height:22px;vertical-align:-5px;margin-right:6px}
+.cancel{display:block;margin:12px auto 0;font-size:17px}
+.sitebar{display:flex;gap:6px;overflow-x:auto;margin:4px 0 14px;padding-bottom:2px}
+.sitebar button{flex-shrink:0;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500}
+.sitebar button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.url{font-size:12px;color:var(--muted);background:var(--bg);border-radius:8px;padding:5px 10px;margin:0 0 12px;text-align:center}
+/* Laptop demo */
+.laptop{width:100%;margin-bottom:14px}
+.lapscreen{background:#17171C;border-radius:14px;padding:10px}
+.browser{background:#fff;color:#141A3A;border-radius:6px;overflow:hidden}
+.browser .bar{display:flex;align-items:center;gap:6px;background:#E9EBF2;padding:7px 10px}
+.browser .bar i{width:10px;height:10px;border-radius:50%;background:#C9CDDA;display:block}
+.browser .addr{flex:1;background:#fff;border-radius:6px;font-size:12px;padding:3px 10px;color:#5B6386;margin-left:6px}
+.browser .page{padding:16px 18px 20px}
+.browser .page h3{margin:0}
+.browser input.t{background:#F4F5FA;border-color:#DDE1EC;color:#141A3A}
+.browser input.t.filled{border-color:#27B894}
+.browser .withbtn{background:#fff;border-color:#141A3A;color:#141A3A}
+/* Enter with Fillkin: always black with white writing (4 Oct 2026) */
+.withbtn,.browser .withbtn{background:#000;border-color:#000;color:#fff}
+.withbtn .mini{border-color:#fff}
+.lapbase{height:14px;background:linear-gradient(#C9CDD8,#A9AEBD);border-radius:0 0 14px 14px;margin:0 -18px;position:relative}
+.lapbase::after{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:90px;height:6px;border-radius:0 0 6px 6px;background:#9095A6}
+.qrbox{text-align:center;border:2px dashed #3A3FB8;border-radius:12px;padding:14px;margin:14px 0}
+.qrbox svg{width:150px;height:150px;display:block;margin:0 auto 8px}
+.qrbox p{margin:0 0 6px;font-size:15px}
+.lapnote{font-size:13px;color:var(--muted);text-align:center;margin:6px 0 0}
+.cam{position:relative;height:240px;border-radius:18px;background:#0E0F18;color:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;margin:12px 0}
+.cam .frame{position:absolute;inset:40px 70px;border:3px solid rgba(255,255,255,.85);border-radius:16px}
+.cam .line{position:absolute;left:70px;right:70px;top:40px;height:3px;background:var(--fill);display:none}
+.cam.scanning .line{display:block;animation:scanline 1s ease-in-out}
+@keyframes scanline{to{top:calc(100% - 43px)}}
+.cam p{position:relative;font-size:14px;margin:0;padding:0 20px;max-width:240px}
+.cam.found{background:#0B3B30}
+.kiosk{background:#17171C;border-radius:22px;padding:14px}
+.kiosk .browser .page{padding-bottom:14px}
+.reader{display:flex;align-items:center;gap:12px;margin:14px 0;padding:12px 14px;border-radius:12px;background:#EEF0FA;font-size:15px}
+.reader svg{width:40px;height:40px;flex-shrink:0;color:#3A3FB8}
+.reader.on{background:#DDF5EE}
+.stand{width:120px;height:46px;margin:0 auto;background:linear-gradient(#B9BECC,#9095A6);clip-path:polygon(35% 0,65% 0,85% 100%,15% 100%)}
+.cam .nfc{position:relative;width:90px;height:90px;color:#fff}
+.cam.scanning .nfc{animation:pulse .5s ease-in-out 2}
+@media (min-width:1020px){
+  body{gap:44px}
+  #laptop{width:600px;margin:0}
+}
+/* ---------- Check reminders ---------- */
+.due{background:var(--surface);border-left:5px solid var(--sun);border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.due b{display:block}
+.due span{display:block;color:var(--muted);font-size:14px;margin:2px 0 8px}
+.due button{background:none;border:none;color:var(--brand);font-weight:700;padding:0;font-size:15px}
+.badge{position:absolute;top:84px;right:18px;background:var(--sun);color:#141A3A;font-size:12px;font-weight:700;border-radius:999px;padding:3px 9px}
+.checkbox{background:var(--surface);border-radius:12px;padding:14px 16px;margin:4px 0 6px;border-left:5px solid var(--sun)}
+.checkbox p{margin:0 0 10px;font-size:15px;color:var(--muted)}
+.checkline{font-size:14px;color:var(--muted);margin:0 0 4px}
+/* ---------- Android look ---------- */
+.android .big{font-size:30px;font-weight:500;letter-spacing:0}
+.android .primary,.android .secondary{border-radius:999px}
+.android .group{border-radius:18px}
+.android .sheet{border-radius:28px 28px 0 0}
+.android .seg{background:none;border:1px solid var(--muted);border-radius:999px;padding:0;overflow:hidden}
+.android .seg button{border-radius:0;box-shadow:none}
+.android .seg button+button{border-left:1px solid var(--muted)}
+.android .seg button[aria-pressed="true"]{background:rgba(58,63,184,.16);box-shadow:none}
+.android .tabbar{background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
+.android .tabbar button svg{box-sizing:content-box;padding:3px 16px;border-radius:16px}
+.android .tabbar button[aria-current="page"] svg{background:rgba(58,63,184,.16)}
+.android .tabbar button[aria-current="page"]{color:var(--ink)}
+.android .switch{width:52px;height:32px;background:var(--off);border:2px solid var(--muted)}
+.android .switch::after{width:16px;height:16px;top:6px;left:6px;background:var(--muted);box-shadow:none;transition:all .2s}
+.android .switch:checked{background:var(--brand);border-color:var(--brand)}
+.android .switch:checked::after{width:24px;height:24px;top:2px;left:2px;background:#fff;transform:translateX(20px)}
+@media (min-width:560px){
+  .phone.android{border-radius:42px;border-width:10px}
+  .phone.android .island{width:14px;height:14px;border-radius:50%;top:16px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
 </head>
 <body>
-  <div id="app"></div>
-  <script type="module" src="/src/main.ts"></script>
+<div class="laptop" id="laptop" hidden></div>
+<div class="phone">
+  <div class="island" aria-hidden="true"></div>
+  <div class="status" aria-hidden="true"><span id="clock">9:41</span>
+    <span><svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg><svg viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="currentColor"/><rect x="23.5" y="4" width="2" height="4" rx="1" fill="currentColor"/></svg></span></div>
+  <main class="scroll" id="app"></main>
+  <nav class="tabbar" id="tabs" hidden></nav>
+</div>
+<script>
+const S={screen:'tour',tourStep:0,history:[],backup:{on:false,pw:'',at:null},bstep:null,berr:'',bok:'',stage:'set',first:'',entry:'',pin:null,msg:'',shake:false,current:'p1',editing:null,
+  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin']),bank:null},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
+const BIO=()=>S.os==='android'?'fingerprint':'Face ID';
+const Bio=()=>S.os==='android'?'Fingerprint':'Face ID';
+const BIOICON=()=>S.os==='android'?ICON.finger:ICON.face;
+
+let profiles=[
+  {id:'p1',kind:'adult',color:0,photo:'',checked:Date.now()-2*2629800000,first:'Alex',last:'Sample',dob:{d:'14',m:'03',y:'1985'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
+   email:'alex@example.com',phone:'07700 900123',school:'',
+   job:'Shop manager',employer:'Example Stores Ltd',carReg:'AB12 CDE',carMake:'Ford',carModel:'Fiesta',
+   gp:'Example Health Centre',nhs:'485 777 3456',kinName:'Sam Sample',kinRel:'Partner',kinPhone:'07700 900456',
+   banks:[{id:'b1',label:'Everyday account',name:'A Sample',sort:'12-34-56',acc:'12345678'},
+          {id:'b2',label:'Savings',name:'A Sample',sort:'65-43-21',acc:'87654321'}]},
+  {id:'p2',kind:'child',color:1,photo:'',checked:Date.now()-7*2629800000,first:'Mia',last:'Sample',dob:{d:'02',m:'09',y:'2016'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
+   email:'',phone:'',school:'Example Primary School',
+   job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:'Example Health Centre',nhs:'',kinName:'Alex Sample',kinRel:'Parent',kinPhone:'07700 900123',banks:[]}
+];
+
+const ICON={
+  face:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14V9a5 5 0 0 1 5-5h5M34 4h5a5 5 0 0 1 5 5v5M44 34v5a5 5 0 0 1-5 5h-5M14 44H9a5 5 0 0 1-5-5v-5M17 17v3M31 17v3M24 17v9h-2M18 33c3.5 3 8.5 3 12 0"/></svg>',
+  tick:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="20"/><path d="M15 25l6 6 12-13"/></svg>',
+  cards:'<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="22" height="16" rx="3"/><path d="M3 11h22"/><path d="M7 17h7" stroke-linecap="round"/></svg>',
+  share:'<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v14M9 9l5-5 5 5"/><path d="M8 13H6v11h16V13h-2"/></svg>',
+  gear:'<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="14" cy="14" r="4"/><path d="M14 3v3M14 22v3M3 14h3M22 14h3M6.2 6.2l2.1 2.1M19.7 19.7l2.1 2.1M6.2 21.8l2.1-2.1M19.7 8.3l2.1-2.1" stroke-linecap="round"/></svg>',
+  nfc:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M14 14c4 6 4 14 0 20"/><path d="M22 9c6 9 6 21 0 30"/><path d="M30 4c8 12 8 28 0 40"/></svg>',
+  clock:'<svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="14" cy="14" r="10.5"/><path d="M14 8v6l4 3"/></svg>',
+  shield:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M24 4l16 6v12c0 11-7 18-16 22C15 40 8 33 8 22V10z"/><path d="M17 24l5 5 9-10"/></svg>',
+  bigcard:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><rect x="5" y="10" width="38" height="28" rx="5"/><circle cx="16" cy="22" r="4"/><path d="M10 33c1.5-3 3.5-4.5 6-4.5s4.5 1.5 6 4.5M27 20h10M27 26h7"/></svg>',
+  bigshare:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="18" width="18" height="10" rx="5"/><circle cx="19" cy="23" r="3.5" fill="currentColor"/><rect x="6" y="32" width="18" height="10" rx="5"/><circle cx="11" cy="37" r="3.5"/><path d="M30 12h12M36 6v12"/></svg>',
+  finger:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 16a14 14 0 0 1 24 0"/><path d="M14 33c-1-3-2-6-2-9a12 12 0 0 1 24 0v2"/><path d="M19 39c-2-4-3-8-3-13a8 8 0 0 1 16 0c0 4 1 7 3 10"/><path d="M24 26c0 6 2 11 5 15"/><path d="M8 24c0-2 .4-4 1-6M40 24c0 4-1 7-2 9"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg>',
+  chev:'<svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>'
+};
+const COLORS=[['#3A3FB8','#5A2FA8'],['#1E8E74','#2A6FB0'],['#C2336E','#7A2FB0'],['#1E7A52','#145C6E'],['#2B2F45','#4A4F6B']];
+const TITLES={about:'ABOUT',address:'HOME ADDRESS',contact:'CONTACT',work:'WORK',car:'CAR',doctor:'DOCTOR',kin:'EMERGENCY CONTACT',banks:'BANK ACCOUNTS',school:'SCHOOL'};
+const NICE={about:'About',address:'Home address',contact:'Contact',work:'Work',car:'Car',doctor:'Doctor',kin:'Emergency contact',school:'School'};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dobOk=d=>d&&d.d.length===2&&d.m.length===2&&d.y.length===4;
+const dobText=d=>dobOk(d)?`${d.d}/${d.m}/${d.y}`:'';
+const secsFor=p=>p.kind==='adult'?['about','address','contact','work','car','doctor','kin','banks']:['about','address','school','doctor','kin'];
+const prof=()=>profiles.find(p=>p.id===S.current)||profiles[0];
+function fillPct(p){
+  const f=[p.first,p.last,dobOk(p.dob)?1:'',p.line1,p.town,p.postcode];
+  if(p.kind==='adult')f.push(p.email,p.phone,p.job,p.employer,p.carReg,p.banks.length?1:'');else f.push(p.school);
+  f.push(p.gp,p.nhs,p.kinName,p.kinPhone);
+  return Math.round(f.filter(Boolean).length/f.length*100);
+}
+const val=v=>v?esc(v):'<span class="empty">Not added yet</span>';
+const row=(l,v)=>`<div class="row"><span>${l}</span><span>${val(v)}</span></div>`;
+const inp=(f,l,v,type='text',extra='')=>`<label class="f" for="f-${f}">${l}</label><input class="t" id="f-${f}" data-f="${f}" type="${type}" value="${esc(v)}" ${extra}>`;
+const mask=a=>a?'••••'+a.slice(-4):'';
+const backBtn=(act,label)=>`<div class="navrow"><button class="back" data-act="${act}" aria-label="Back to ${esc(label)}">${S.os==='android'?ICON.arrow.replace('<svg','<svg style="width:24px;height:24px"'):ICON.chev+esc(label)}</button></div>`;
+const MONTH=2629800000;
+const monthsAgo=p=>Math.floor((Date.now()-p.checked)/MONTH);
+const isDue=p=>monthsAgo(p)>=(p.kind==='child'?S.remind:12);
+const agoText=p=>{const m=monthsAgo(p);return m<1?'this month':m===1?'1 month ago':m+' months ago';};
+const initials=p=>((p.first||'?')[0]+(p.last||'')[0]||'').toUpperCase();
+const card=(p,btn)=>{const pc=fillPct(p);const tag=btn?'button':'div';const [c1,c2]=COLORS[p.color||0];
+  return `<${tag} class="kcard ${p.kind}" style="background:linear-gradient(135deg,${c1},${c2})" ${btn?`data-act="open" data-id="${p.id}"`:''}>
+  <span class="ava" aria-hidden="true">${p.photo?`<img src="${p.photo}" alt="">`:esc(initials(p))}</span>
+  ${isDue(p)?'<span class="badge">Check due</span>':''}
+  <div class="logo"><i></i>Fillkin</div>
+  <div class="kind">${p.kind==='adult'?'Your card':'Child\u2019s card'}</div>
+  <div class="nm">${esc(p.first||'New')} ${esc(p.last)}</div>
+  <div class="meter"><i style="width:${pc}%"></i></div><div class="pct">${pc}% filled</div></${tag}>`};
+
+const SIZES=[['Standard',1],['Large',1.15],['Extra large',1.3]];
+function render(){
+  document.querySelector('.phone').classList.toggle('android',S.os==='android');
+  document.documentElement.style.setProperty('--z',S.zoom);
+  document.getElementById('app').innerHTML=({tour,lock,home,profile,share,demo,history:historyScreen,settings})[S.screen]();
+  const lap=document.getElementById('laptop'),showLap=S.screen==='demo'&&S.mode!=='phone'&&wide();
+  lap.hidden=!showLap;lap.innerHTML=showLap?laptopHTML():'';
+  const tabs=document.getElementById('tabs');
+  tabs.hidden=S.screen==='lock'||S.screen==='tour';
+  const on=t=>({home:'home',profile:'home',share:'share',demo:'share',history:'history',settings:'settings'})[S.screen]===t?'aria-current="page"':'';
+  tabs.innerHTML=`<button data-act="tab" data-t="home" ${on('home')}>${ICON.cards}Cards</button>
+    <button data-act="tab" data-t="share" ${on('share')}>${ICON.share}Share</button>
+    <button data-act="tab" data-t="history" ${on('history')}>${ICON.clock}History</button>
+    <button data-act="tab" data-t="settings" ${on('settings')}>${ICON.gear}Settings</button>`;
+  S.shake=false;
+}
+
+/* ---------- Welcome tour ---------- */
+const TOUR=[
+  ['bigcard','Fill in your card once','Add your details one time. Add a card for each of your children too.'],
+  ['bigshare','Share with one tap','Tap Enter with Fillkin on any form. You switch on only what you want to share.'],
+  ['shield','Locked on your phone','Your details stay on your phone, locked with {BIO} or a 10-digit passcode.']
+];
+function tour(){
+  const [ic,h,t]=TOUR[S.tourStep],last=S.tourStep===TOUR.length-1;
+  return `<div class="tour">${last?'<span style="height:30px"></span>':'<button class="skip" data-act="tour-done">Skip</button>'}
+    <div class="art" aria-hidden="true">${ICON[ic]}</div>
+    <h1>${h}</h1><p>${t.replace('{BIO}',BIO())}</p>
+    <div class="tdots" aria-label="Step ${S.tourStep+1} of ${TOUR.length}">${TOUR.map((_,i)=>`<i class="${i===S.tourStep?'on':''}"></i>`).join('')}</div>
+    <button class="primary wide" data-act="${last?'tour-done':'tour-next'}" style="margin-top:0">${last?'Get started':'Next'}</button></div>`;
+}
+
+/* ---------- History ---------- */
+const when=t=>{const d=new Date(t),n=new Date();const hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+  return d.toDateString()===n.toDateString()?'Today at '+hm:d.toLocaleDateString('en-GB')+' at '+hm;};
+function historyScreen(){
+  const list=S.history.length?`<div class="group">${S.history.map(h=>`<div class="hist"><b>${esc(h.site)}</b>
+      <small>${esc(h.who)}\u2019s card, ${esc(h.where)}</small>
+      <small>Shared: ${esc(h.items)}</small><small>${when(h.t)}</small></div>`).join('')}</div>
+      <button class="primary wide" data-act="hist-clear" style="background:none;color:var(--warn);border:1px solid var(--line)">Clear history</button>`
+    :`<div class="group emptybox">Nothing shared yet.<br>When you use Enter with Fillkin, it shows here.</div>`;
+  return `<h1 class="big">History</h1><p class="sub">Who you shared with, and when.</p>${list}
+    <p class="note">History is kept on this phone only.</p>`;
+}
+
+/* ---------- Lock ---------- */
+function lock(){
+  const h={set:'Choose a 10-digit passcode',confirm:'Enter it again',enter:'Enter your passcode'}[S.stage];
+  let dots='';for(let i=0;i<10;i++)dots+=`<span class="${i<S.entry.length?'on':''}"></span>`;
+  const keys=[1,2,3,4,5,6,7,8,9].map(k=>`<button data-act="key" data-k="${k}" aria-label="${k}">${k}</button>`).join('');
+  return `<div class="lock">
+    <p class="hook">Sick of filling out forms?</p>
+    <div class="mark" aria-hidden="true"></div>
+    <h1 class="wordmark">Fillkin</h1>
+    <p class="slogan">does it for you.</p>
+    <h2>${h}</h2>
+    <div class="dots ${S.shake?'shake':''}" aria-label="${S.entry.length} of 10 digits entered">${dots}</div>
+    <p class="msg" role="alert">${esc(S.msg)}</p>
+    <div class="pad">${keys}
+      <button class="small" data-act="face" aria-label="Unlock with ${BIO()}">${BIOICON()}${Bio()}</button>
+      <button data-act="key" data-k="0" aria-label="0">0</button>
+      <button class="small" data-act="del" aria-label="Delete">Delete</button>
+    </div></div>`;
+}
+function pressKey(k){
+  if(S.screen!=='lock'||S.entry.length>=10)return;
+  S.entry+=k;S.msg='';
+  if(S.entry.length<10)return render();
+  if(S.stage==='set'){S.first=S.entry;S.entry='';S.stage='confirm';}
+  else if(S.stage==='confirm'){
+    if(S.entry===S.first){S.pin=S.entry;S.stage='enter';S.entry='';S.screen='home';}
+    else{S.msg='Those passcodes didn\u2019t match. Choose it again.';S.stage='set';S.entry='';S.shake=true;}
+  } else {
+    if(S.entry===S.pin){S.entry='';S.screen='home';}
+    else{S.msg='Wrong passcode. Try again.';S.entry='';S.shake=true;}
+  }
+  render();
+}
+function faceId(cb){
+  if(!cb&&!S.pin){S.msg='Choose a passcode first. It\u2019s your backup if '+BIO()+' doesn\u2019t work.';return render();}
+  const ov=document.createElement('div');ov.className='faceid';
+  ov.innerHTML=`<div><span class="scan">${BIOICON()}</span>${S.os==='android'?'Touch the sensor':'Face ID'}</div>`;
+  document.querySelector('.phone').appendChild(ov);
+  setTimeout(()=>{ov.firstElementChild.innerHTML=`<span class="done">${ICON.tick}</span>Unlocked`;},900);
+  setTimeout(()=>{ov.remove();if(cb)return cb();S.entry='';S.screen='home';render();},1500);
+}
+
+/* ---------- Cards tab ---------- */
+function home(){
+  const due=profiles.filter(isDue).map(p=>`<div class="due" role="status"><b>Time to check ${esc(p.first||'this')}’s card</b>
+    <span>Last checked ${agoText(p)}. Has anything changed${p.kind==='child'?', like school or doctor':''}?</span>
+    <button data-act="open" data-id="${p.id}">Check now</button></div>`).join('');
+  return `<h1 class="big">Cards</h1><p class="sub">Have you got your Fillkin card?</p>
+    ${due}${profiles.map(p=>card(p,true)).join('')}
+    <button class="add" data-act="addchild">+ Add a child</button>`;
+}
+function secView(p,s){
+  if(s==='about')return row('First name',p.first)+row('Last name',p.last)+row('Date of birth',dobText(p.dob));
+  if(s==='address')return row('Address',p.line1)+row('Town',p.town)+row('Postcode',p.postcode);
+  if(s==='contact')return row('Email',p.email)+row('Mobile',p.phone);
+  if(s==='school')return row('School',p.school);
+  if(s==='work')return row('Job title',p.job)+row('Employer',p.employer);
+  if(s==='car')return row('Registration',p.carReg)+row('Make',p.carMake)+row('Model',p.carModel);
+  if(s==='doctor')return row('GP surgery',p.gp)+row('NHS number',p.nhs);
+  if(s==='kin')return row('Name',p.kinName)+row('Relationship',p.kinRel)+row('Phone',p.kinPhone);
+  if(s==='banks')return p.banks.length?p.banks.map(b=>`<div class="bank"><b>${esc(b.label)}</b>
+      <small>Sort code <span class="mono">${esc(b.sort)}</span>, account <span class="mono">${mask(b.acc)}</span></small></div>`).join('')
+    :'<div class="row"><span class="empty">No bank accounts added yet</span></div>';
+}
+function secEdit(p,s){
+  let h='';
+  if(s==='about')h=inp('first','First name',p.first,'text','autocomplete="given-name"')+inp('last','Last name',p.last,'text','autocomplete="family-name"')+
+    `<label class="f">Date of birth (day / month / year)</label><div class="dob">
+      <input class="t" data-dob="d" inputmode="numeric" maxlength="2" placeholder="DD" value="${esc(p.dob.d)}" aria-label="Day">
+      <span>/</span><input class="t" data-dob="m" inputmode="numeric" maxlength="2" placeholder="MM" value="${esc(p.dob.m)}" aria-label="Month">
+      <span>/</span><input class="t y" data-dob="y" inputmode="numeric" maxlength="4" placeholder="YYYY" value="${esc(p.dob.y)}" aria-label="Year"></div>`;
+  if(s==='address')h=inp('line1','Address',p.line1)+inp('town','Town',p.town)+inp('postcode','Postcode',p.postcode);
+  if(s==='contact')h=inp('email','Email',p.email,'email')+inp('phone','Mobile',p.phone,'tel');
+  if(s==='school')h=inp('school','School',p.school);
+  if(s==='work')h=inp('job','Job title',p.job)+inp('employer','Employer',p.employer);
+  if(s==='car')h=inp('carReg','Registration',p.carReg,'text','style="text-transform:uppercase" autocapitalize="characters"')+inp('carMake','Make',p.carMake)+inp('carModel','Model',p.carModel);
+  if(s==='doctor')h=inp('gp','GP surgery',p.gp)+inp('nhs','NHS number (10 digits)',p.nhs,'text','inputmode="numeric" maxlength="12" placeholder="123 456 7890"');
+  if(s==='kin')h=inp('kinName','Name',p.kinName)+inp('kinRel','Relationship',p.kinRel)+inp('kinPhone','Phone',p.kinPhone,'tel');
+  if(s==='banks')h=p.banks.map((b,i)=>`<div class="bankedit">
+      <label class="f">Account nickname</label><input class="t" data-b="label" value="${esc(b.label)}">
+      <label class="f">Name on account</label><input class="t" data-b="name" value="${esc(b.name)}">
+      <label class="f">Sort code</label><input class="t mono" data-b="sort" inputmode="numeric" maxlength="8" placeholder="12-34-56" value="${esc(b.sort)}">
+      <label class="f">Account number</label><input class="t mono" data-b="acc" inputmode="numeric" maxlength="8" value="${esc(b.acc)}">
+      <button class="link rm" data-act="rmbank" data-i="${i}">Remove this account</button></div>`).join('')+
+    `<p><button class="link" data-act="addbank">+ Add another account</button></p>`;
+  return `<div class="edit">${h}<div class="btns"><button class="primary" data-act="save">Save</button><button class="secondary" data-act="cancel">Cancel</button></div></div>`;
+}
+function profile(){
+  const p=prof();
+  const secs=secsFor(p).map(s=>`<section class="sec"><header><h3>${TITLES[s]}</h3>
+      ${S.editing===s?'':`<button class="link" data-act="edit" data-sec="${s}">Edit</button>`}</header>
+      <div class="group">${S.editing===s?secEdit(p,s):secView(p,s)}</div></section>`).join('');
+  const custom=`<div class="custom"><label class="photobtn">${p.photo?'Change photo':'Add a photo'}
+      <input type="file" accept="image/*" data-photo style="position:absolute;opacity:0;width:1px;height:1px"></label>
+    <div class="swatches" role="group" aria-label="Card colour">${COLORS.map((c,i)=>
+      `<button data-act="color" data-c="${i}" aria-label="Colour ${i+1}" aria-pressed="${(p.color||0)===i}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join('')}</div></div>`;
+  const chk=isDue(p)?`<div class="checkbox"><p>Last checked ${agoText(p)}. Look through the details below. Is everything still right?</p>
+      <button class="primary" data-act="checked">Yes, all correct</button></div>`
+    :`<p class="checkline">Last checked ${agoText(p)}</p>`;
+  return `${backBtn('home','Cards')}${card(p,false)}${custom}${chk}${secs}
+    <button class="primary wide" data-act="share">Share ${esc(p.first||'these')} details</button>`;
+}
+function collect(){
+  const p=prof(),s=S.editing;
+  if(s==='banks'){
+    p.banks=[...document.querySelectorAll('.bankedit')].map((el,i)=>{
+      const g=k=>el.querySelector(`[data-b="${k}"]`).value.trim();
+      return {id:p.banks[i]?.id||('b'+Date.now()+i),label:g('label')||'Bank account',name:g('name'),sort:g('sort'),acc:g('acc').replace(/\D/g,'')};
+    });
+    return;
+  }
+  document.querySelectorAll('[data-f]').forEach(el=>p[el.dataset.f]=el.value.trim());
+  if(s==='car')p.carReg=p.carReg.toUpperCase();
+  if(s==='doctor'){const n=p.nhs.replace(/\D/g,'');if(n.length===10)p.nhs=n.slice(0,3)+' '+n.slice(3,6)+' '+n.slice(6);}
+  document.querySelectorAll('[data-dob]').forEach(el=>p.dob[el.dataset.dob]=el.value.replace(/\D/g,''));
+}
+
+/* ---------- Share tab ---------- */
+function share(){
+  const p=prof();
+  if(p.banks.length&&S.share.bank!==''&&!p.banks.find(b=>b.id===S.share.bank))S.share.bank=p.banks[0].id;
+  const seg=profiles.length>1?`<div class="seg" role="group" aria-label="Whose card">${profiles.map(x=>
+    `<button data-act="pick" data-id="${x.id}" aria-pressed="${x.id===p.id}">${esc(x.first||'New')}</button>`).join('')}</div>`:'';
+  const secs=secsFor(p).filter(s=>s!=='banks').map(s=>`<label class="choice"><span>${NICE[s]}</span>
+      <input type="checkbox" class="switch" data-share="${s}" ${S.share.secs.has(s)?'checked':''}></label>`).join('');
+  const banks=p.banks.length?`<p class="grouphead">WHICH BANK ACCOUNT?</p><div class="group">
+      <label class="choice"><span>Don\u2019t share bank details</span><input type="radio" class="radio" name="bk" data-bank-pick="" ${S.share.bank===''?'checked':''}></label>
+      ${p.banks.map(b=>`<label class="choice"><span>${esc(b.label)} <small class="mono">${mask(b.acc)}</small></span>
+      <input type="radio" class="radio" name="bk" data-bank-pick="${b.id}" ${S.share.bank===b.id?'checked':''}></label>`).join('')}</div>`:'';
+  return `<h1 class="big">Share</h1><p class="sub">Your usual choices. You can change them every time.</p>
+    ${seg}<p class="grouphead">WHAT TO SHARE</p><div class="group">${secs}</div>${banks}
+    <p class="note">You choose every time. Nothing is sent without ${BIO()} or your passcode.</p>
+    <button class="primary wide" data-act="demo">Try it on a website</button>`;
+}
+
+/* ---------- Demo websites ---------- */
+const SITES={
+  shop:{tab:'Shop',name:'Example Shop',url:'exampleshop.co.uk',title:'Create your account',asks:['about','address','contact']},
+  school:{tab:'School',name:'Example Primary School',url:'exampleprimary.sch.uk',title:'School trip form',asks:['about','address','doctor','kin']},
+  gp:{tab:'Doctor',name:'Example Health Centre',url:'examplehealth.nhs.uk',title:'Register as a new patient',asks:['about','address','contact','doctor','kin']},
+  ins:{tab:'Car insurance',name:'Example Car Insurance',url:'examplecarcover.co.uk',title:'Get a quote',asks:['about','address','contact','work','car','banks']}
+};
+const DEMO=[['name','Full name','about'],['dob','Date of birth','about'],['addr','Address','address'],['pc','Postcode','address'],
+  ['email','Email','contact'],['phone','Mobile','contact'],['school','School','school'],['employer','Employer','work'],['reg','Car registration','car'],
+  ['gp','GP surgery','doctor'],['nhs','NHS number','doctor'],['kin','Emergency contact','kin'],['sort','Sort code','banks'],['acc','Account number','banks']];
+function demo(){
+  const p=prof(),site=SITES[S.site];
+  const sites=Object.entries(SITES).map(([k,v])=>`<button data-act="site" data-s="${k}" aria-pressed="${k===S.site}">${v.tab}</button>`).join('');
+  const who=`<div class="seg" role="group" aria-label="Whose card">${profiles.map(x=>
+    `<button data-act="pick" data-id="${x.id}" aria-pressed="${x.id===p.id}">${esc(x.first||'New')}</button>`).join('')}</div>`;
+  const mode=`<div class="seg" role="group" aria-label="Where is the form">
+    <button data-act="mode" data-m="phone" aria-pressed="${S.mode==='phone'}">This iPhone</button>
+    <button data-act="mode" data-m="laptop" aria-pressed="${S.mode==='laptop'}">Laptop (QR)</button>
+    <button data-act="mode" data-m="tap" aria-pressed="${S.mode==='tap'}">Tap a reader</button></div>`;
+  const top=`${backBtn('tab-share','Share')}
+    <p class="sub" style="margin:0 0 4px">Pick a pretend website:</p>
+    <div class="sitebar">${sites}</div>
+    <p class="sub" style="margin:0 0 4px">Whose card?</p>${who}
+    <p class="sub" style="margin:10px 0 4px">Where is the form?</p>${mode}`;
+  if(S.mode==='tap'){
+    const cls=S.camMsg.startsWith('Connected')?'found':'';
+    return `${top}${wide()?'':`<p class="sub" style="margin:14px 0 6px">The screen at the desk:</p><div class="laptop">${laptopHTML()}</div>`}
+      <p class="sub" style="margin:14px 0 0">Your iPhone:</p>
+      <div class="cam ${cls}" id="cam"><div><div class="nfc">${ICON.nfc}</div>
+        <p>${esc(S.camMsg||'Hold the top of your iPhone near the reader')}</p></div></div>
+      <button class="primary wide" data-act="tap" style="margin-top:0">Hold iPhone near reader</button>
+      <p class="note">Works like contactless payment. It only connects when your phone is a few centimetres away.</p>`;
+  }
+  if(S.mode==='laptop'){
+    const cls=S.camMsg.startsWith('Found')?'found':'';
+    return `${top}${wide()?'':`<p class="sub" style="margin:14px 0 6px">The laptop screen:</p><div class="laptop">${laptopHTML()}</div>`}
+      <p class="sub" style="margin:14px 0 0">Your iPhone camera:</p>
+      <div class="cam ${cls}" id="cam"><div class="frame"></div><div class="line"></div>
+        <p>${esc(S.camMsg||'Point your camera at the QR code on the laptop')}</p></div>
+      <button class="primary wide" data-act="scan" style="margin-top:0">Scan QR code</button>
+      <p class="note">Your phone also checks the laptop is nearby using Bluetooth, so a photo of the QR sent from far away won’t work.</p>`;
+  }
+  const fields=fieldsHTML(site);
+  return `${top}
+    <div class="shop" style="margin-top:12px"><p class="url">🔒 ${site.url}</p><h3>${site.name}</h3><p class="sub" style="margin:0">${site.title}</p>
+      <button class="withbtn" data-act="fill"><span class="mini" aria-hidden="true"></span>Enter with Fillkin</button>
+      ${fields}</div>
+    <p class="note" style="text-align:center">Fill once, remembered always.<br>Designed to speed your day.</p>`;
+}
+const wide=()=>matchMedia('(min-width:1020px)').matches;
+const fieldsHTML=site=>DEMO.filter(([, ,sec])=>site.asks.includes(sec))
+  .map(([k,l])=>`<label class="f" for="d-${k}">${l}</label><input class="t" id="d-${k}" data-demo="${k}" readonly>`).join('');
+function qrSVG(seed){
+  const n=25;let x=seed*9301+49297;const r=()=>(x=(x*9301+49297)%233280)/233280;
+  const inF=(i,j)=>[[0,0],[0,n-7],[n-7,0]].some(([a,b])=>i>=a-1&&i<a+8&&j>=b-1&&j<b+8);
+  let c='';
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++)if(!inF(i,j)&&r()>.5)c+=`<rect x="${j}" y="${i}" width="1" height="1"/>`;
+  for(const [a,b] of [[0,0],[0,n-7],[n-7,0]])c+=`<rect x="${b}" y="${a}" width="7" height="7"/><rect x="${b+1}" y="${a+1}" width="5" height="5" fill="#fff"/><rect x="${b+2}" y="${a+2}" width="3" height="3"/>`;
+  return `<svg viewBox="-1 -1 27 27" role="img" aria-label="Demo QR code" shape-rendering="crispEdges"><rect x="-1" y="-1" width="27" height="27" fill="#fff"/><g fill="#141A3A">${c}</g></svg>`;
+}
+function laptopHTML(){
+  const site=SITES[S.site];
+  if(S.mode==='tap'){
+    return `<div class="kiosk"><div class="browser"><div class="page"><h3>${site.name}</h3>
+      <p style="margin:0;color:#5B6386;font-size:15px">${site.title} – reception</p>
+      <div class="reader ${S.camMsg.startsWith('Connected')?'on':''}">${ICON.nfc}<span><b>Tap your phone here</b><br>to fill this in with Fillkin</span></div>
+      ${fieldsHTML(site)}</div></div></div><div class="stand" aria-hidden="true"></div>${wide()?'<p class="lapnote">Screen at the desk</p>':''}`;
+  }
+  const btn=S.qr?`<div class="qrbox">${qrSVG(site.url.length)}<p><b>Scan with the Fillkin app on your phone</b></p>
+      <button class="link" data-act="qr-cancel">Cancel</button></div>`
+    :`<button class="withbtn" data-act="lap-fill"><span class="mini" aria-hidden="true"></span>Enter with Fillkin</button>`;
+  return `<div class="lapscreen"><div class="browser"><div class="bar"><i></i><i></i><i></i><span class="addr">🔒 ${site.url}</span></div>
+    <div class="page"><h3>${site.name}</h3><p style="margin:0;color:#5B6386;font-size:15px">${site.title}</p>${btn}${fieldsHTML(site)}</div></div></div>
+    <div class="lapbase" aria-hidden="true"></div>${wide()?'<p class="lapnote">Your laptop</p>':''}`;
+}
+function scan(){
+  if(S.filling)return;
+  const cam=document.getElementById('cam');
+  if(!S.qr){S.camMsg='No QR code yet. First click Enter with Fillkin on the laptop.';return render();}
+  cam.classList.add('scanning');cam.querySelector('p').textContent='Scanning\u2026';
+  setTimeout(()=>{S.camMsg='Found '+SITES[S.site].name+' on your laptop nearby \u2713';S.qr=false;render();openSheet();},
+    matchMedia('(prefers-reduced-motion: reduce)').matches?0:1000);
+}
+function tapReader(){
+  if(S.filling||document.querySelector('.sheetwrap'))return;
+  const cam=document.getElementById('cam');
+  cam.classList.add('scanning');cam.querySelector('p').textContent='Connecting\u2026';
+  setTimeout(()=>{S.camMsg='Connected to '+SITES[S.site].name+' reception \u2713';render();openSheet();},
+    matchMedia('(prefers-reduced-motion: reduce)').matches?0:1000);
+}
+function openSheet(){
+  if(S.filling||document.querySelector('.sheetwrap'))return;
+  const p=prof(),site=SITES[S.site];
+  const have=site.asks.filter(x=>secsFor(p).includes(x));
+  const missing=site.asks.filter(x=>!secsFor(p).includes(x));
+  const wantsBank=have.includes('banks')&&p.banks.length;
+  S.sheet={secs:new Set(have.filter(x=>x!=='banks'&&S.share.secs.has(x))),bank:wantsBank?(S.share.bank===''?'':(p.banks.find(b=>b.id===S.share.bank)||p.banks[0]).id):''};
+  const rows=have.filter(x=>x!=='banks').map(x=>`<label class="choice"><span>${NICE[x]}</span>
+    <input type="checkbox" class="switch" data-sheet-sec="${x}" ${S.sheet.secs.has(x)?'checked':''}></label>`).join('');
+  const bank=wantsBank?`<p class="grouphead">BANK ACCOUNT</p><div class="group">
+    <label class="choice"><span>Don\u2019t share</span><input type="radio" class="radio" name="sbk" data-sheet-bank="" ${S.sheet.bank===''?'checked':''}></label>
+    ${p.banks.map(b=>`<label class="choice"><span>${esc(b.label)} <small class="mono">${mask(b.acc)}</small></span>
+    <input type="radio" class="radio" name="sbk" data-sheet-bank="${b.id}" ${S.sheet.bank===b.id?'checked':''}></label>`).join('')}</div>`:'';
+  const miss=missing.length?`<p class="note">Not on ${esc(p.first||'this')}\u2019s card: ${missing.map(x=>x==='banks'?'Bank account':NICE[x]).join(', ')}. You\u2019ll type those yourself.</p>`:'';
+  const w=document.createElement('div');w.className='sheetwrap';
+  w.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Fillkin">
+    <div class="handle" aria-hidden="true"></div>
+    <div class="sheethead"><span class="mini" aria-hidden="true"></span>Fillkin</div>
+    <p class="sheettitle">${site.name}${S.mode==='laptop'?' on your laptop':S.mode==='tap'?' reception':''} wants to fill in:</p>
+    <p class="sub" style="margin:0 0 4px">From ${esc(p.first||'this')}\u2019s card</p>
+    <div class="group">${rows}</div>${bank}${miss}
+    <button class="primary wide" data-act="sheet-go">${BIOICON()}Fill in with ${BIO()}</button>
+    <button class="link cancel" data-act="sheet-cancel">Cancel</button>
+    <p class="note" style="text-align:center">${site.name} only gets what you switch on.</p></div>`;
+  document.querySelector('.phone').appendChild(w);
+  w.querySelector('[data-act="sheet-go"]').focus();
+}
+function closeSheet(){const w=document.querySelector('.sheetwrap');w&&w.remove();}
+function runFill(on,bankId){
+  if(S.filling)return;S.filling=true;
+  const p=prof(),b=p.banks.find(x=>x.id===bankId),has=x=>on.has(x)&&secsFor(p).includes(x);
+  const site=SITES[S.site],sent=site.asks.filter(x=>x==='banks'?!!b:has(x)).map(x=>x==='banks'?'Bank account ('+b.label+')':NICE[x]);
+  S.history.unshift({site:site.name,who:p.first||'New',where:{phone:'on this iPhone',laptop:'on a laptop (QR)',tap:'at the desk (tap)'}[S.mode],
+    items:sent.length?sent.join(', '):'nothing',t:Date.now()});
+  const data={name:has('about')?`${p.first} ${p.last}`:'',dob:has('about')?dobText(p.dob):'',
+    addr:has('address')?`${p.line1}, ${p.town}`:'',pc:has('address')?p.postcode:'',
+    email:has('contact')?p.email:'',phone:has('contact')?p.phone:'',school:has('school')?p.school:'',
+    employer:has('work')?p.employer:'',reg:has('car')?p.carReg:'',gp:has('doctor')?p.gp:'',nhs:has('doctor')?p.nhs:'',
+    kin:has('kin')&&p.kinName?`${p.kinName} (${p.kinRel}) ${p.kinPhone}`:'',
+    sort:b?b.sort:'',acc:b?b.acc:''};
+  const els=[...document.querySelectorAll('[data-demo]')];
+  els.forEach(e=>{e.value='';e.classList.remove('filled');e.placeholder=''});
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let i=0;
+  (function next(){
+    if(i>=els.length){S.filling=false;return;}
+    const e=els[i++],v=data[e.dataset.demo]||'';
+    if(!v){const sec=DEMO.find(x=>x[0]===e.dataset.demo)[2];
+      e.placeholder=(sec==='banks'?!!b:has(sec))?'Not on the card yet – type it yourself':'Not shared – type it yourself';return next();}
+    if(reduce){e.value=v;e.classList.add('filled');return next();}
+    let c=0;const t=setInterval(()=>{e.value=v.slice(0,++c);if(c>=v.length){clearInterval(t);e.classList.add('filled');setTimeout(next,60);}},18);
+  })();
+}
+
+/* ---------- Backup ---------- */
+function backupHTML(){
+  const B=S.backup;
+  if(S.bstep==='set'||S.bstep==='restore'){
+    const setting=S.bstep==='set';
+    return `<div class="edit">
+      <label class="f" for="bpw">${setting?'Choose a backup password (at least 8 characters)':'Enter your backup password'}</label>
+      <input class="t" id="bpw" type="password" autocomplete="${setting?'new-password':'current-password'}">
+      ${setting?'<label class="f" for="bpw2">Type it again</label><input class="t" id="bpw2" type="password" autocomplete="new-password">':''}
+      ${S.berr?`<p class="errline" role="alert">${esc(S.berr)}</p>`:''}
+      ${setting?'<p class="note" style="margin:10px 0 0">Write it down somewhere safe. If you forget it, nobody can open your backup.</p>':''}
+      <div class="btns"><button class="primary" data-act="${setting?'b-save':'b-restore'}">${setting?'Turn on backup':'Restore my cards'}</button>
+      <button class="secondary" data-act="b-cancel">Cancel</button></div></div>`;
+  }
+  if(!B.on)return `<div class="row"><span>Backup</span><span>Off</span></div>
+    <div class="edit" style="padding-top:0"><button class="primary" data-act="b-start">Turn on locked backup</button></div>`;
+  return `<div class="row"><span>Backup</span><span class="okline">On \u2713</span></div>
+    <div class="row"><span>Last backed up</span><span>${when(B.at)}</span></div>
+    ${S.bok?`<div class="row"><span class="okline">${esc(S.bok)}</span></div>`:''}
+    <div class="edit" style="padding-top:4px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="secondary" data-act="b-now">Back up now</button>
+      <button class="secondary" data-act="b-rstart">Restore on a new phone</button></div>`;
+}
+
+/* ---------- Settings tab ---------- */
+function settings(){
+  return `<h1 class="big">Settings</h1>
+    <p class="grouphead">SECURITY</p><div class="group">
+      <div class="row"><span>Unlock with</span><span>${Bio()} or passcode</span></div>
+      <div class="row"><span>Your details are kept</span><span>On this iPhone only</span></div></div>
+    <p class="grouphead">LOCKED BACKUP</p><div class="group">${backupHTML()}</div>
+    <p class="note">If you lose your phone, you can get all your cards back on a new one. Only your backup password can open it, not even Fillkin can.</p>
+    <p class="grouphead">REMIND ME TO CHECK CHILDREN’S CARDS</p>
+    <div class="seg" role="group" aria-label="Reminder for children's cards">${[3,6,12].map(m=>
+      `<button data-act="remind" data-m="${m}" aria-pressed="${S.remind===m}">Every ${m} months</button>`).join('')}</div>
+    <p class="note">Your own card is checked once a year. You also get a phone notification when one is due.</p>
+    <p class="grouphead">PHONE STYLE</p>
+    <div class="seg" role="group" aria-label="Phone style">
+      <button data-act="os" data-o="ios" aria-pressed="${S.os==='ios'}">iPhone</button>
+      <button data-act="os" data-o="android" aria-pressed="${S.os==='android'}">Android</button></div>
+    <p class="grouphead">TEXT SIZE</p>
+    <div class="seg" role="group" aria-label="Text size">${SIZES.map(([l,z])=>
+      `<button data-act="zoom" data-z="${z}" aria-pressed="${S.zoom===z}">${l}</button>`).join('')}</div>
+    <p class="grouphead">PRICE</p><div class="group">
+      <div class="row"><span>Each person</span><span>£1, one-off</span></div></div>
+    <button class="primary wide" data-act="lock">Lock Fillkin now</button>
+    <button class="link" data-act="tour-again" style="display:block;margin:16px auto 0">Show the welcome tour again</button>
+    <p class="note">Prototype – sample details only. Nothing is saved.</p>`;
+}
+
+/* ---------- Events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act;
+  if(a==='key')return pressKey(b.dataset.k);
+  if(a==='del'){S.entry=S.entry.slice(0,-1);return render();}
+  if(a==='face')return faceId();
+  if(a==='site'){S.site=b.dataset.s;S.qr=false;S.camMsg='';return render();}
+  if(a==='mode'){S.mode=b.dataset.m;S.qr=false;S.camMsg='';return render();}
+  if(a==='lap-fill'){S.qr=true;S.camMsg='';return render();}
+  if(a==='qr-cancel'){S.qr=false;return render();}
+  if(a==='scan')return scan();
+  if(a==='tour-next'){S.tourStep++;return render();}
+  if(a==='tour-done'){S.screen='lock';S.tourStep=0;return render();}
+  if(a==='tour-again'){S.screen='tour';S.tourStep=0;return render();}
+  if(a==='hist-clear'){S.history=[];return render();}
+  if(a==='b-start'){S.bstep='set';S.berr='';S.bok='';render();document.getElementById('bpw').focus();return;}
+  if(a==='b-rstart'){S.bstep='restore';S.berr='';S.bok='';render();document.getElementById('bpw').focus();return;}
+  if(a==='b-cancel'){S.bstep=null;S.berr='';return render();}
+  if(a==='b-save'){const a1=document.getElementById('bpw').value,a2=document.getElementById('bpw2').value;
+    if(a1.length<8)S.berr='Use at least 8 characters.';else if(a1!==a2)S.berr='Those passwords don\u2019t match.';
+    else{S.backup={on:true,pw:a1,at:Date.now()};S.bstep=null;S.berr='';S.bok='Your cards are backed up \u2713';}
+    return render();}
+  if(a==='b-now'){S.backup.at=Date.now();S.bok='Backed up just now \u2713';return render();}
+  if(a==='b-restore'){const v=document.getElementById('bpw').value;
+    if(v!==S.backup.pw)S.berr='That password isn\u2019t right. Try again.';
+    else{S.bstep=null;S.berr='';S.bok=`Restored ${profiles.length} card${profiles.length===1?'':'s'} \u2713`;}
+    return render();}
+  if(a==='remind'){S.remind=+b.dataset.m;return render();}
+  if(a==='os'){S.os=b.dataset.o;return render();}
+  if(a==='zoom'){S.zoom=+b.dataset.z;return render();}
+  if(a==='color'){prof().color=+b.dataset.c;return render();}
+  if(a==='tap')return tapReader();
+  if(a==='sheet-cancel')return closeSheet();
+  if(a==='sheet-go'){const on=S.sheet.secs,bk=S.sheet.bank;closeSheet();return faceId(()=>runFill(on,bk));}
+  if(a==='lock'){S.screen='lock';S.stage='enter';S.entry='';S.msg='';return render();}
+  if(a==='tab'){S.screen=b.dataset.t;S.editing=null;return render();}
+  if(a==='tab-share'){S.screen='share';return render();}
+  if(a==='open'){S.current=b.dataset.id;S.editing=null;S.screen='profile';return render();}
+  if(a==='pick'){S.current=b.dataset.id;S.share.bank=null;S.camMsg='';return render();}
+  if(a==='home'){S.screen='home';S.editing=null;return render();}
+  if(a==='edit'){S.editing=b.dataset.sec;render();const f=document.querySelector('.edit input');f&&f.focus();return;}
+  if(a==='cancel'){S.editing=null;return render();}
+  if(a==='save'){collect();prof().checked=Date.now();S.editing=null;return render();}
+  if(a==='checked'){prof().checked=Date.now();return render();}
+  if(a==='addbank'){collect();prof().banks.push({id:'b'+Date.now(),label:'',name:'',sort:'',acc:''});return render();}
+  if(a==='rmbank'){collect();prof().banks.splice(+b.dataset.i,1);return render();}
+  if(a==='addchild'){
+    const adult=profiles.find(p=>p.kind==='adult');
+    const c={id:'p'+Date.now(),kind:'child',color:1,photo:'',checked:Date.now(),first:'',last:adult.last,dob:{d:'',m:'',y:''},
+      line1:adult.line1,town:adult.town,postcode:adult.postcode,email:'',phone:'',school:'',
+      job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:adult.gp,nhs:'',kinName:`${adult.first} ${adult.last}`,kinRel:'Parent',kinPhone:adult.phone,banks:[]};
+    profiles.push(c);S.current=c.id;S.editing='about';S.screen='profile';render();
+    document.getElementById('f-first').focus();return;
+  }
+  if(a==='share'){S.screen='share';S.editing=null;return render();}
+  if(a==='demo'){S.screen='demo';return render();}
+  if(a==='fill')return openSheet();
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.share!==undefined){t.checked?S.share.secs.add(t.dataset.share):S.share.secs.delete(t.dataset.share);}
+  if(t.dataset.bankPick!==undefined){S.share.bank=t.dataset.bankPick;}
+  if(t.dataset.sheetSec!==undefined){t.checked?S.sheet.secs.add(t.dataset.sheetSec):S.sheet.secs.delete(t.dataset.sheetSec);}
+  if(t.dataset.sheetBank!==undefined){S.sheet.bank=t.dataset.sheetBank;}
+  if(t.dataset.photo!==undefined&&t.files&&t.files[0]&&t.files[0].type.startsWith('image/')){
+    const p=prof();if(p.photo)URL.revokeObjectURL(p.photo);p.photo=URL.createObjectURL(t.files[0]);render();}
+});
+/* Date of birth boxes: type and jump to the next box automatically */
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.dob===undefined)return;
+  t.value=t.value.replace(/\D/g,'');
+  if(t.value.length>=+t.maxLength){const n=[...t.parentElement.querySelectorAll('[data-dob]')],i=n.indexOf(t);if(n[i+1])n[i+1].focus();}
+});
+document.addEventListener('keydown',e=>{
+  const t=e.target;
+  if(t.dataset&&t.dataset.dob!==undefined&&e.key==='Backspace'&&!t.value){
+    const n=[...t.parentElement.querySelectorAll('[data-dob]')],i=n.indexOf(t);if(n[i-1]){e.preventDefault();n[i-1].focus();}
+  }
+  if(S.screen==='lock'&&/^[0-9]$/.test(e.key))pressKey(e.key);
+  if(S.screen==='lock'&&e.key==='Backspace'){S.entry=S.entry.slice(0,-1);render();}
+});
+function tick(){const d=new Date();document.getElementById('clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');}
+tick();setInterval(tick,30000);
+matchMedia('(min-width:1020px)').addEventListener('change',()=>{if(S.screen==='demo'&&!document.querySelector('.sheetwrap')&&!S.filling)render();});
+render();
+</script>
 </body>
 </html>
