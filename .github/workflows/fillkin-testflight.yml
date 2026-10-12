@@ -68,7 +68,10 @@ jobs:
           echo "API key looks valid."
           echo "ASC_KEY_PATH=$key" >> "$GITHUB_ENV"
 
-      - name: Archive (signed automatically with the API key)
+      # Archive unsigned: a signed archive would ask Apple for a *development*
+      # profile, which needs a registered iPhone. The export step below signs
+      # the app for App Store distribution instead (no devices needed).
+      - name: Archive
         run: |
           xcodebuild \
             -project ios/App/App.xcodeproj \
@@ -76,16 +79,12 @@ jobs:
             -configuration Release \
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/Fillkin.xcarchive" \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath "$ASC_KEY_PATH" \
-            -authenticationKeyID "$ASC_KEY_ID" \
-            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic \
+            CODE_SIGNING_ALLOWED=NO \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             archive
 
-      - name: Upload to App Store Connect / TestFlight
+      - name: Sign for App Store and upload to TestFlight
         run: |
           cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
           <?xml version="1.0" encoding="UTF-8"?>
