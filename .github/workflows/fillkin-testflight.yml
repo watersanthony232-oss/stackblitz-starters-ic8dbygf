@@ -109,6 +109,18 @@ jobs:
             -authenticationKeyIssuerID "$ASC_ISSUER_ID"
           echo "Uploaded build ${{ github.run_number }}. It appears in App Store Connect -> TestFlight after processing (~15 min)."
 
+      - name: Show Apple's detailed export log (on failure)
+        if: failure()
+        run: |
+          for d in "${TMPDIR:-/tmp}"/*.xcdistributionlogs; do
+            [ -d "$d" ] || continue
+            for f in "$d"/IDEDistribution.critical.log "$d"/IDEDistribution.standard.log; do
+              [ -f "$f" ] || continue
+              echo "===== $f"
+              grep -iE "error|fail|denied|not found|could not|unable|bundle|team|agreement|status code|response" "$f" | tail -n 80
+            done
+          done
+
       - name: Remove API key
         if: always()
         run: rm -rf "$RUNNER_TEMP/asc"
