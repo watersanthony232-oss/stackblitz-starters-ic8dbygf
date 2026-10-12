@@ -13,7 +13,14 @@ This is the **app prototype** (restored from the 4 October 2026 version):
 - **Enter with Fillkin** demo on pretend websites (shop, school, doctor, car insurance, vet), on this phone, on a laptop by QR code, or by tapping a reader
 - **History** of what was shared, and **Settings** (locked backup, reminders, iPhone/Android style, text size)
 
-It uses sample details only, and nothing is saved yet.
+Fillkin starts with one empty card. Everything you type is **saved on the device, encrypted**:
+
+- Your details are encrypted (AES-GCM) with a random key. That key is locked with your 10-digit passcode (PBKDF2), so the passcode itself is never stored.
+- In the iPhone app, the locked data is kept in a file that iOS also protects whenever the phone is locked. If you turn on Face ID, the key goes in the iPhone Keychain behind Face ID (`ios/App/App/FillkinKey.swift`). Adding a new face or fingerprint switches Face ID off until you use your passcode again.
+- After 5 wrong passcodes Fillkin makes you wait, and the wait gets longer each time.
+- Fillkin hides your details when it goes into the background, and locks after a minute away.
+- "Forgot passcode?" erases Fillkin on the device so you can start again. Nobody, including Fillkin, can recover the details without the passcode.
+- Locked backup to a new phone isn't built yet.
 
 ## Run
 

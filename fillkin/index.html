@@ -94,6 +94,8 @@ button{cursor:pointer}
 .shake{animation:shake .35s}
 @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 .msg{min-height:22px;font-size:14px;color:var(--warn);margin:0 0 8px}
+.tabbar[hidden]{display:none}
+.cover #app,.cover #laptop,.cover #tabs{visibility:hidden}
 .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 22px;max-width:270px;margin:0 auto}
 .pad button{aspect-ratio:1;border-radius:50%;border:none;background:var(--surface);font-size:28px;font-weight:300}
 .pad button.small{font-size:13px;font-weight:500;color:var(--brand);background:none}
@@ -285,25 +287,91 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
   <nav class="tabbar" id="tabs" hidden></nav>
 </div>
 <script>
-const S={screen:'tour',tourStep:0,history:[],backup:{on:false,pw:'',at:null},bstep:null,berr:'',bok:'',stage:'set',first:'',entry:'',pin:null,msg:'',shake:false,current:'p1',editing:null,
+const S={screen:'tour',tourStep:0,history:[],stage:'set',first:'',entry:'',busy:false,msg:'',shake:false,current:'p1',editing:null,
   site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets']),bank:null},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
-const BIO=()=>S.os==='android'?'fingerprint':'Face ID';
-const Bio=()=>S.os==='android'?'Fingerprint':'Face ID';
-const BIOICON=()=>S.os==='android'?ICON.finger:ICON.face;
+const BIO=()=>NATIVE?(BIOTYPE==='touchID'?'Touch ID':'Face ID'):S.os==='android'?'fingerprint':'Face ID';
+const Bio=()=>NATIVE?BIO():S.os==='android'?'Fingerprint':'Face ID';
+const BIOICON=()=>(NATIVE?BIOTYPE==='touchID':S.os==='android')?ICON.finger:ICON.face;
 
-let profiles=[
-  {id:'p1',kind:'adult',color:0,photo:'',checked:Date.now()-2*2629800000,first:'Alex',last:'Sample',dob:{d:'14',m:'03',y:'1985'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
-   email:'alex@example.com',phone:'07700 900123',school:'',
-   job:'Shop manager',employer:'Example Stores Ltd',carReg:'AB12 CDE',carMake:'Ford',carModel:'Fiesta',
-   gp:'Example Health Centre',nhs:'485 777 3456',hospNo:'K1234567',kinName:'Sam Sample',kinRel:'Partner',kinPhone:'07700 900456',
-   passNo:'123456789',passExp:'01/05/2031',licNo:'SAMPL853145A99AB',licExp:'14/03/2033',pets:'Rex (dog), Tilly (cat)',
-   banks:[{id:'b1',label:'Everyday account',name:'A Sample',sort:'12-34-56',acc:'12345678'},
-          {id:'b2',label:'Savings',name:'A Sample',sort:'65-43-21',acc:'87654321'}]},
-  {id:'p2',kind:'child',color:1,photo:'',checked:Date.now()-7*2629800000,first:'Mia',last:'Sample',dob:{d:'02',m:'09',y:'2016'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
-   email:'',phone:'',school:'Example Primary School',
-   job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:'Example Health Centre',nhs:'',hospNo:'',kinName:'Alex Sample',kinRel:'Parent',kinPhone:'07700 900123',
-   passNo:'',passExp:'',licNo:'',licExp:'',pets:'',banks:[]}
-];
+const blankAdult=()=>({id:'p1',kind:'adult',color:0,photo:'',checked:Date.now(),first:'',last:'',dob:{d:'',m:'',y:''},line1:'',town:'',postcode:'',
+   email:'',phone:'',school:'',job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:'',nhs:'',hospNo:'',kinName:'',kinRel:'',kinPhone:'',
+   passNo:'',passExp:'',licNo:'',licExp:'',pets:'',banks:[]});
+let profiles=[];
+
+/* ---------- Saving: locked on this phone ----------
+   Your details are encrypted (AES-GCM) with a random key. That key is locked with your
+   passcode, and on the iPhone app also kept behind Face ID in the iPhone's Keychain. */
+const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+const nat=(m,o={})=>Capacitor.nativePromise('FillkinKey',m,o);
+let BIOTYPE='none',BIOAVAIL=false;
+let V=null,VK=null,RAW=null,saveTimer=null,hiddenAt=0;
+const LSKEY='fillkin-vault';
+const STORE={
+  read:async()=>{if(NATIVE)return (await nat('readVault')).data||null;try{return localStorage.getItem(LSKEY);}catch(e){return null;}},
+  write:async d=>{if(NATIVE)return nat('writeVault',{data:d});localStorage.setItem(LSKEY,d);},
+  erase:async()=>{if(NATIVE)return nat('eraseAll');try{localStorage.removeItem(LSKEY);}catch(e){}}
+};
+const b64=u=>{let t='';new Uint8Array(u).forEach(c=>t+=String.fromCharCode(c));return btoa(t);};
+const unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+const aes=raw=>crypto.subtle.importKey('raw',raw,'AES-GCM',false,['encrypt','decrypt']);
+async function pinKey(pin,salt,iter){
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt:unb64(salt),iterations:iter},base,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function enc(key,text){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  return {iv:b64(iv),ct:b64(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(text)))};
+}
+const dec=async(key,box)=>new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(box.iv)},key,unb64(box.ct)));
+const writeV=()=>STORE.write(JSON.stringify(V));
+function snapshot(){
+  return JSON.stringify({profiles,history:S.history,remind:S.remind,zoom:S.zoom,os:S.os,share:[...S.share.secs]});
+}
+function applyData(d){
+  profiles=d.profiles&&d.profiles.length?d.profiles:[blankAdult()];
+  S.history=d.history||[];S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=d.os||S.os;
+  if(d.share)S.share.secs=new Set(d.share);
+  S.current=profiles[0].id;
+}
+async function saveNow(){
+  clearTimeout(saveTimer);saveTimer=null;
+  if(!VK||!V)return;
+  const k=VK;V.data=await enc(k,snapshot());
+  if(VK===k)await writeV();
+}
+function saveSoon(){if(VK&&!saveTimer)saveTimer=setTimeout(()=>saveNow().catch(()=>{}),400);}
+async function createVault(pin){
+  const raw=crypto.getRandomValues(new Uint8Array(32)),salt=b64(crypto.getRandomValues(new Uint8Array(16))),iter=310000;
+  V={v:1,salt,iter,bio:false,fails:0,until:0};
+  V.wrap=await enc(await pinKey(pin,salt,iter),b64(raw));
+  VK=await aes(raw);RAW=b64(raw);
+  applyData({profiles:[blankAdult()]});
+  await saveNow();
+}
+async function openWith(rawB64){
+  const k=await aes(unb64(rawB64));
+  const d=JSON.parse(await dec(k,V.data));
+  VK=k;RAW=rawB64;applyData(d);
+}
+async function unlockPin(pin){
+  let raw;
+  try{raw=await dec(await pinKey(pin,V.salt,V.iter),V.wrap);}catch(e){return false;}
+  await openWith(raw);
+  return true;
+}
+const tooSoon=()=>V&&V.until>Date.now()?Math.ceil((V.until-Date.now())/1000):0;
+const waitText=n=>n>90?`${Math.ceil(n/60)} minutes`:`${n} seconds`;
+async function lockNow(){
+  if(VK)await saveNow().catch(()=>{});
+  VK=null;RAW=null;profiles=[];S.history=[];S.sheet=null;
+  S.screen='lock';S.stage='enter';S.entry='';S.msg='';S.editing=null;
+}
+async function bioOn(){
+  await nat('saveKey',{key:RAW});V.bio=true;await writeV();
+}
+async function bioOff(){
+  await nat('deleteKey');V.bio=false;await writeV();
+}
 
 const ICON={
   face:'<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14V9a5 5 0 0 1 5-5h5M34 4h5a5 5 0 0 1 5 5v5M44 34v5a5 5 0 0 1-5 5h-5M14 44H9a5 5 0 0 1-5-5v-5M17 17v3M31 17v3M24 17v9h-2M18 33c3.5 3 8.5 3 12 0"/></svg>',
@@ -346,7 +414,7 @@ const agoText=p=>{const m=monthsAgo(p);return m<1?'this month':m===1?'1 month ag
 const initials=p=>((p.first||'?')[0]+(p.last||'')[0]||'').toUpperCase();
 const card=(p,btn)=>{const pc=fillPct(p);const tag=btn?'button':'div';const [c1,c2]=COLORS[p.color||0];
   return `<${tag} class="kcard ${p.kind}" style="background:linear-gradient(135deg,${c1},${c2})" ${btn?`data-act="open" data-id="${p.id}"`:''}>
-  <span class="ava" aria-hidden="true">${p.photo?`<img src="${p.photo}" alt="">`:esc(initials(p))}</span>
+  <span class="ava" aria-hidden="true">${p.photo?`<img src="${esc(p.photo)}" alt="">`:esc(initials(p))}</span>
   ${isDue(p)?'<span class="badge">Check due</span>':''}
   <div class="logo"><i></i>Fillkin</div>
   <div class="kind">${p.kind==='adult'?'Your card':'Child\u2019s card'}</div>
@@ -368,6 +436,7 @@ function render(){
     <button data-act="tab" data-t="history" ${on('history')}>${ICON.clock}History</button>
     <button data-act="tab" data-t="settings" ${on('settings')}>${ICON.gear}Settings</button>`;
   S.shake=false;
+  saveSoon();
 }
 
 /* ---------- Welcome tour ---------- */
@@ -400,6 +469,15 @@ function historyScreen(){
 
 /* ---------- Lock ---------- */
 function lock(){
+  if(S.stage==='bio')return `<div class="lock">
+    <div class="mark" aria-hidden="true"></div>
+    <h1 class="wordmark">Fillkin</h1>
+    <div class="art" aria-hidden="true" style="margin:26px auto 10px;width:64px;color:var(--brand)">${BIOICON()}</div>
+    <h2>Unlock with ${BIO()}?</h2>
+    <p class="msg" role="alert" style="min-height:0">${esc(S.msg)}</p>
+    <p class="note" style="margin:0 24px 18px">It's quicker than typing your passcode. You can change this in Settings.</p>
+    <button class="primary wide" data-act="bio-yes">Use ${BIO()}</button>
+    <button class="link" data-act="bio-no" style="display:block;margin:16px auto 0">Not now</button></div>`;
   const h={set:'Choose a 10-digit passcode',confirm:'Enter it again',enter:'Enter your passcode'}[S.stage];
   let dots='';for(let i=0;i<10;i++)dots+=`<span class="${i<S.entry.length?'on':''}"></span>`;
   const keys=[1,2,3,4,5,6,7,8,9].map(k=>`<button data-act="key" data-k="${k}" aria-label="${k}">${k}</button>`).join('');
@@ -412,32 +490,59 @@ function lock(){
     <div class="dots ${S.shake?'shake':''}" aria-label="${S.entry.length} of 10 digits entered">${dots}</div>
     <p class="msg" role="alert">${esc(S.msg)}</p>
     <div class="pad">${keys}
-      <button class="small" data-act="face" aria-label="Unlock with ${BIO()}">${BIOICON()}${Bio()}</button>
+      ${S.stage==='enter'&&NATIVE&&V&&V.bio?`<button class="small" data-act="face" aria-label="Unlock with ${BIO()}">${BIOICON()}${Bio()}</button>`:'<span></span>'}
       <button data-act="key" data-k="0" aria-label="0">0</button>
       <button class="small" data-act="del" aria-label="Delete">Delete</button>
-    </div></div>`;
+    </div>${S.stage==='enter'?'<button class="link" data-act="forgot" style="display:block;margin:18px auto 0">Forgot passcode?</button>':''}</div>`;
 }
 function pressKey(k){
-  if(S.screen!=='lock'||S.entry.length>=10)return;
+  if(S.screen!=='lock'||S.busy||S.entry.length>=10||!['set','confirm','enter'].includes(S.stage))return;
   S.entry+=k;S.msg='';
   if(S.entry.length<10)return render();
-  if(S.stage==='set'){S.first=S.entry;S.entry='';S.stage='confirm';}
-  else if(S.stage==='confirm'){
-    if(S.entry===S.first){S.pin=S.entry;S.stage='enter';S.entry='';S.screen='home';}
-    else{S.msg='Those passcodes didn\u2019t match. Choose it again.';S.stage='set';S.entry='';S.shake=true;}
-  } else {
-    if(S.entry===S.pin){S.entry='';S.screen='home';}
-    else{S.msg='Wrong passcode. Try again.';S.entry='';S.shake=true;}
+  if(S.stage==='set'){S.first=S.entry;S.entry='';S.stage='confirm';return render();}
+  if(S.stage==='confirm'){
+    if(S.entry!==S.first){S.msg='Those passcodes didn\u2019t match. Choose it again.';S.stage='set';S.entry='';S.shake=true;return render();}
+    return busy('Setting up\u2026',async()=>{
+      await createVault(S.entry);S.first='';S.entry='';
+      if(NATIVE&&BIOAVAIL)S.stage='bio';else startFilling();
+    });
   }
-  render();
+  const wait=tooSoon();
+  if(wait){S.entry='';S.msg=`Too many tries. Try again in ${waitText(wait)}.`;S.shake=true;return render();}
+  busy('Unlocking\u2026',async()=>{
+    const ok=await unlockPin(S.entry);S.entry='';
+    if(ok){V.fails=0;V.until=0;await writeV();S.stage='enter';S.screen='home';return;}
+    V.fails=(V.fails||0)+1;
+    const pause=V.fails>=10?900:V.fails>=8?300:V.fails>=5?30:0;
+    if(pause)V.until=Date.now()+pause*1000;
+    await writeV();
+    S.msg=pause?`Wrong passcode. Try again in ${waitText(pause)}.`:'Wrong passcode. Try again.';S.shake=true;
+  });
 }
-function faceId(cb){
-  if(!cb&&!S.pin){S.msg='Choose a passcode first. It\u2019s your backup if '+BIO()+' doesn\u2019t work.';return render();}
-  const ov=document.createElement('div');ov.className='faceid';
-  ov.innerHTML=`<div><span class="scan">${BIOICON()}</span>${S.os==='android'?'Touch the sensor':'Face ID'}</div>`;
-  document.querySelector('.phone').appendChild(ov);
-  setTimeout(()=>{ov.firstElementChild.innerHTML=`<span class="done">${ICON.tick}</span>Unlocked`;},900);
-  setTimeout(()=>{ov.remove();if(cb)return cb();S.entry='';S.screen='home';render();},1500);
+async function busy(text,fn){
+  S.busy=true;S.msg=text;render();
+  try{S.msg='';await fn();}
+  catch(e){S.msg='Something went wrong. Please try again.';}
+  S.busy=false;render();
+}
+function startFilling(){S.stage='enter';S.current=profiles[0].id;S.screen='profile';S.editing='about';}
+async function bioUnlock(){
+  if(S.busy||!(NATIVE&&V&&V.bio))return;
+  if(tooSoon()){S.msg=`Too many tries. Try again in ${waitText(tooSoon())}.`;return render();}
+  let key;
+  try{key=(await nat('loadKey',{reason:'Unlock your Fillkin cards'})).key;}
+  catch(e){
+    if(e&&e.code==='nokey'){V.bio=false;await writeV();S.msg=BIO()+' has changed on this phone. Use your passcode, then turn '+BIO()+' back on in Settings.';}
+    else if(!(e&&e.code==='cancelled'))S.msg=BIO()+' didn\u2019t work. Use your passcode.';
+    return render();
+  }
+  await busy('Unlocking\u2026',async()=>{await openWith(key);V.fails=0;V.until=0;await writeV();S.screen='home';});
+}
+/* Ask for Face ID before anything is shared, when it's turned on. */
+async function confirmIt(cb){
+  if(!(NATIVE&&V&&V.bio))return cb();
+  try{await nat('verify',{reason:'Share your details'});}catch(e){return;}
+  cb();
 }
 
 /* ---------- Cards tab ---------- */
@@ -687,37 +792,16 @@ function runFill(on,bankId){
 }
 
 /* ---------- Backup ---------- */
-function backupHTML(){
-  const B=S.backup;
-  if(S.bstep==='set'||S.bstep==='restore'){
-    const setting=S.bstep==='set';
-    return `<div class="edit">
-      <label class="f" for="bpw">${setting?'Choose a backup password (at least 8 characters)':'Enter your backup password'}</label>
-      <input class="t" id="bpw" type="password" autocomplete="${setting?'new-password':'current-password'}">
-      ${setting?'<label class="f" for="bpw2">Type it again</label><input class="t" id="bpw2" type="password" autocomplete="new-password">':''}
-      ${S.berr?`<p class="errline" role="alert">${esc(S.berr)}</p>`:''}
-      ${setting?'<p class="note" style="margin:10px 0 0">Write it down somewhere safe. If you forget it, nobody can open your backup.</p>':''}
-      <div class="btns"><button class="primary" data-act="${setting?'b-save':'b-restore'}">${setting?'Turn on backup':'Restore my cards'}</button>
-      <button class="secondary" data-act="b-cancel">Cancel</button></div></div>`;
-  }
-  if(!B.on)return `<div class="row"><span>Backup</span><span>Off</span></div>
-    <div class="edit" style="padding-top:0"><button class="primary" data-act="b-start">Turn on locked backup</button></div>`;
-  return `<div class="row"><span>Backup</span><span class="okline">On \u2713</span></div>
-    <div class="row"><span>Last backed up</span><span>${when(B.at)}</span></div>
-    ${S.bok?`<div class="row"><span class="okline">${esc(S.bok)}</span></div>`:''}
-    <div class="edit" style="padding-top:4px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="secondary" data-act="b-now">Back up now</button>
-      <button class="secondary" data-act="b-rstart">Restore on a new phone</button></div>`;
-}
-
 /* ---------- Settings tab ---------- */
 function settings(){
   return `<h1 class="big">Settings</h1>
     <p class="grouphead">SECURITY</p><div class="group">
-      <div class="row"><span>Unlock with</span><span>${Bio()} or passcode</span></div>
-      <div class="row"><span>Your details are kept</span><span>On this iPhone only</span></div></div>
-    <p class="grouphead">LOCKED BACKUP</p><div class="group">${backupHTML()}</div>
-    <p class="note">If you lose your phone, you can get all your cards back on a new one. Only your backup password can open it, not even Fillkin can.</p>
+      <div class="row"><span>Unlock with</span><span>${V&&V.bio?Bio()+' or passcode':'Passcode'}</span></div>
+      ${NATIVE&&(BIOAVAIL||V&&V.bio)?`<div class="edit" style="padding-top:4px">${V&&V.bio
+        ?`<button class="secondary" data-act="bio-off">Turn off ${BIO()}</button>`
+        :`<button class="secondary" data-act="bio-start">Turn on ${BIO()}</button>`}</div>`:''}
+      <div class="row"><span>Your details are kept</span><span>On this ${NATIVE?'iPhone':'device'} only, locked</span></div></div>
+    <p class="note">Locked backup to a new phone is coming soon. Until then, if you delete Fillkin or lose your phone, your cards can\u2019t be got back.</p>
     <p class="grouphead">REMIND ME TO CHECK CHILDREN’S CARDS</p>
     <div class="seg" role="group" aria-label="Reminder for children's cards">${[3,6,12].map(m=>
       `<button data-act="remind" data-m="${m}" aria-pressed="${S.remind===m}">Every ${m} months</button>`).join('')}</div>
@@ -733,7 +817,8 @@ function settings(){
       <div class="row"><span>Each person</span><span>£1, one-off</span></div></div>
     <button class="primary wide" data-act="lock">Lock Fillkin now</button>
     <button class="link" data-act="tour-again" style="display:block;margin:16px auto 0">Show the welcome tour again</button>
-    <p class="note">Prototype – sample details only. Nothing is saved.</p>`;
+    <button class="link" data-act="erase" style="display:block;margin:16px auto 0;color:var(--warn)">Erase Fillkin from this ${NATIVE?'iPhone':'device'}</button>
+    <p class="note">Your details are saved on this ${NATIVE?'iPhone':'device'}, locked with your passcode${V&&V.bio?' and '+BIO():''}. Nobody else can read them, not even Fillkin.</p>`;
 }
 
 /* ---------- Events ---------- */
@@ -742,37 +827,39 @@ document.addEventListener('click',e=>{
   const a=b.dataset.act;
   if(a==='key')return pressKey(b.dataset.k);
   if(a==='del'){S.entry=S.entry.slice(0,-1);return render();}
-  if(a==='face')return faceId();
+  if(a==='face')return bioUnlock();
+  if(a==='bio-yes')return busy('',async()=>{
+    try{await nat('verify',{reason:'Turn on '+BIO()+' for Fillkin'});}catch(e){S.msg=e&&e.code==='cancelled'?'':BIO()+' didn\u2019t work. Try again, or choose Not now.';return;}
+    await bioOn();startFilling();});
+  if(a==='bio-no'){startFilling();return render();}
+  if(a==='bio-off')return busy('',async()=>{await bioOff();});
+  if(a==='bio-start')return busy('',async()=>{
+    try{await nat('verify',{reason:'Turn on '+BIO()+' for Fillkin'});}catch(e){return;}
+    await bioOn();});
+  if(a==='forgot'){
+    if(!confirm('Forgot your passcode? The only way back in is to erase Fillkin on this phone and start again. All your cards will be deleted.'))return;
+    return erase();}
+  if(a==='erase'){
+    if(!confirm('Erase all your Fillkin cards from this phone? This can\u2019t be undone.'))return;
+    return erase();}
   if(a==='site'){S.site=b.dataset.s;S.qr=false;S.camMsg='';return render();}
   if(a==='mode'){S.mode=b.dataset.m;S.qr=false;S.camMsg='';return render();}
   if(a==='lap-fill'){S.qr=true;S.camMsg='';return render();}
   if(a==='qr-cancel'){S.qr=false;return render();}
   if(a==='scan')return scan();
   if(a==='tour-next'){S.tourStep++;return render();}
-  if(a==='tour-done'){S.screen='lock';S.tourStep=0;return render();}
+  if(a==='tour-done'){S.screen=VK?'settings':'lock';S.tourStep=0;return render();}
   if(a==='tour-again'){S.screen='tour';S.tourStep=0;return render();}
   if(a==='hist-clear'){S.history=[];return render();}
-  if(a==='b-start'){S.bstep='set';S.berr='';S.bok='';render();document.getElementById('bpw').focus();return;}
-  if(a==='b-rstart'){S.bstep='restore';S.berr='';S.bok='';render();document.getElementById('bpw').focus();return;}
-  if(a==='b-cancel'){S.bstep=null;S.berr='';return render();}
-  if(a==='b-save'){const a1=document.getElementById('bpw').value,a2=document.getElementById('bpw2').value;
-    if(a1.length<8)S.berr='Use at least 8 characters.';else if(a1!==a2)S.berr='Those passwords don\u2019t match.';
-    else{S.backup={on:true,pw:a1,at:Date.now()};S.bstep=null;S.berr='';S.bok='Your cards are backed up \u2713';}
-    return render();}
-  if(a==='b-now'){S.backup.at=Date.now();S.bok='Backed up just now \u2713';return render();}
-  if(a==='b-restore'){const v=document.getElementById('bpw').value;
-    if(v!==S.backup.pw)S.berr='That password isn\u2019t right. Try again.';
-    else{S.bstep=null;S.berr='';S.bok=`Restored ${profiles.length} card${profiles.length===1?'':'s'} \u2713`;}
-    return render();}
   if(a==='remind'){S.remind=+b.dataset.m;return render();}
   if(a==='os'){S.os=b.dataset.o;return render();}
   if(a==='zoom'){S.zoom=+b.dataset.z;return render();}
   if(a==='color'){prof().color=+b.dataset.c;return render();}
   if(a==='tap')return tapReader();
   if(a==='sheet-cancel')return closeSheet();
-  if(a==='sheet-go'){const on=S.sheet.secs,bk=S.sheet.bank;closeSheet();return faceId(()=>runFill(on,bk));}
-  if(a==='lock'){S.screen='lock';S.stage='enter';S.entry='';S.msg='';return render();}
-  if(a==='tab'){S.screen=b.dataset.t;S.editing=null;return render();}
+  if(a==='sheet-go'){const on=S.sheet.secs,bk=S.sheet.bank;closeSheet();return confirmIt(()=>runFill(on,bk));}
+  if(a==='lock'){lockNow().then(render);return;}
+  if(a==='tab'){if(!VK)return;S.screen=b.dataset.t;S.editing=null;return render();}
   if(a==='tab-share'){S.screen='share';return render();}
   if(a==='open'){S.current=b.dataset.id;S.editing=null;S.screen='profile';return render();}
   if(a==='pick'){S.current=b.dataset.id;S.share.bank=null;S.camMsg='';return render();}
@@ -802,7 +889,11 @@ document.addEventListener('change',e=>{
   if(t.dataset.sheetSec!==undefined){t.checked?S.sheet.secs.add(t.dataset.sheetSec):S.sheet.secs.delete(t.dataset.sheetSec);}
   if(t.dataset.sheetBank!==undefined){S.sheet.bank=t.dataset.sheetBank;}
   if(t.dataset.photo!==undefined&&t.files&&t.files[0]&&t.files[0].type.startsWith('image/')){
-    const p=prof();if(p.photo)URL.revokeObjectURL(p.photo);p.photo=URL.createObjectURL(t.files[0]);render();}
+    const p=prof(),u=URL.createObjectURL(t.files[0]),img=new Image();
+    img.onload=()=>{const c=document.createElement('canvas'),z=Math.min(1,320/Math.max(img.width,img.height));
+      c.width=Math.round(img.width*z);c.height=Math.round(img.height*z);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      p.photo=c.toDataURL('image/jpeg',0.85);URL.revokeObjectURL(u);render();};
+    img.onerror=()=>URL.revokeObjectURL(u);img.src=u;}
 });
 /* Date of birth boxes: type and jump to the next box automatically */
 document.addEventListener('input',e=>{
@@ -822,7 +913,27 @@ document.addEventListener('keydown',e=>{
 function tick(){const d=new Date();document.getElementById('clock').textContent=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');}
 tick();setInterval(tick,30000);
 matchMedia('(min-width:1020px)').addEventListener('change',()=>{if(S.screen==='demo'&&!document.querySelector('.sheetwrap')&&!S.filling)render();});
-render();
+/* Hide your details when Fillkin goes into the background, and lock it after a minute away. */
+function away(){if(!hiddenAt)hiddenAt=Date.now();document.body.classList.add('cover');saveNow().catch(()=>{});}
+function back(){
+  document.body.classList.remove('cover');
+  const gone=hiddenAt&&Date.now()-hiddenAt>60000;hiddenAt=0;
+  if(gone&&VK)lockNow().then(()=>{render();if(V&&V.bio)bioUnlock();});
+}
+document.addEventListener('visibilitychange',()=>document.hidden?away():back());
+document.addEventListener('pause',away);document.addEventListener('resume',back);
+async function erase(){
+  await STORE.erase().catch(()=>{});
+  V=null;VK=null;RAW=null;profiles=[];S.history=[];S.screen='tour';S.tourStep=0;S.stage='set';S.entry='';S.msg='';S.editing=null;
+  render();
+}
+async function boot(){
+  if(NATIVE){try{const st=await nat('status');BIOAVAIL=!!st.available;BIOTYPE=st.type||'none';}catch(e){}}
+  try{V=JSON.parse(await STORE.read()||'null');}catch(e){V=null;}
+  if(V&&V.wrap&&V.data){S.screen='lock';S.stage='enter';render();if(V.bio)bioUnlock();}
+  else{V=null;render();}
+}
+boot();
 </script>
 </body>
 </html>
