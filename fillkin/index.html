@@ -282,7 +282,7 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 </div>
 <script>
 const S={screen:'tour',tourStep:0,history:[],backup:{on:false,pw:'',at:null},bstep:null,berr:'',bok:'',stage:'set',first:'',entry:'',pin:null,msg:'',shake:false,current:'p1',editing:null,
-  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin'])},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
+  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets'])},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
 const BIO=()=>S.os==='android'?'fingerprint':'Face ID';
 const Bio=()=>S.os==='android'?'Fingerprint':'Face ID';
 const BIOICON=()=>S.os==='android'?ICON.finger:ICON.face;
@@ -291,10 +291,12 @@ let profiles=[
   {id:'p1',kind:'adult',color:0,photo:'',checked:Date.now()-2*2629800000,first:'Alex',last:'Sample',dob:{d:'14',m:'03',y:'1985'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
    email:'alex@example.com',phone:'07700 900123',school:'',
    job:'Shop manager',employer:'Example Stores Ltd',carReg:'AB12 CDE',carMake:'Ford',carModel:'Fiesta',
-   gp:'Example Health Centre',nhs:'485 777 3456',kinName:'Sam Sample',kinRel:'Partner',kinPhone:'07700 900456'},
+   gp:'Example Health Centre',nhs:'485 777 3456',hospNo:'K1234567',kinName:'Sam Sample',kinRel:'Partner',kinPhone:'07700 900456',
+   passNo:'123456789',passExp:'01/05/2031',licNo:'SAMPL853145A99AB',licExp:'14/03/2033',pets:'Rex (dog), Tilly (cat)'},
   {id:'p2',kind:'child',color:1,photo:'',checked:Date.now()-7*2629800000,first:'Mia',last:'Sample',dob:{d:'02',m:'09',y:'2016'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
    email:'',phone:'',school:'Example Primary School',
-   job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:'Example Health Centre',nhs:'',kinName:'Alex Sample',kinRel:'Parent',kinPhone:'07700 900123'}
+   job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:'Example Health Centre',nhs:'',hospNo:'',kinName:'Alex Sample',kinRel:'Parent',kinPhone:'07700 900123',
+   passNo:'',passExp:'',licNo:'',licExp:'',pets:''}
 ];
 
 const ICON={
@@ -313,12 +315,12 @@ const ICON={
   chev:'<svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>'
 };
 const COLORS=[['#3A3FB8','#5A2FA8'],['#1E8E74','#2A6FB0'],['#C2336E','#7A2FB0'],['#1E7A52','#145C6E'],['#2B2F45','#4A4F6B']];
-const TITLES={about:'ABOUT',address:'HOME ADDRESS',contact:'CONTACT',work:'WORK',car:'CAR',doctor:'DOCTOR',kin:'EMERGENCY CONTACT',school:'SCHOOL'};
-const NICE={about:'About',address:'Home address',contact:'Contact',work:'Work',car:'Car',doctor:'Doctor',kin:'Emergency contact',school:'School'};
+const TITLES={ids:'PASSPORT AND DRIVING LICENCE',pets:'PETS',about:'ABOUT',address:'HOME ADDRESS',contact:'CONTACT',work:'WORK',car:'CAR',doctor:'DOCTOR',kin:'EMERGENCY CONTACT',school:'SCHOOL'};
+const NICE={ids:'Passport and licence',pets:'Pets',about:'About',address:'Home address',contact:'Contact',work:'Work',car:'Car',doctor:'Doctor',kin:'Emergency contact',school:'School'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dobOk=d=>d&&d.d.length===2&&d.m.length===2&&d.y.length===4;
 const dobText=d=>dobOk(d)?`${d.d}/${d.m}/${d.y}`:'';
-const secsFor=p=>p.kind==='adult'?['about','address','contact','work','car','doctor','kin']:['about','address','school','doctor','kin'];
+const secsFor=p=>p.kind==='adult'?['about','address','contact','work','car','ids','doctor','kin','pets']:['about','address','school','ids','doctor','kin'];
 const prof=()=>profiles.find(p=>p.id===S.current)||profiles[0];
 function fillPct(p){
   const f=[p.first,p.last,dobOk(p.dob)?1:'',p.line1,p.town,p.postcode];
@@ -447,7 +449,9 @@ function secView(p,s){
   if(s==='school')return row('School',p.school);
   if(s==='work')return row('Job title',p.job)+row('Employer',p.employer);
   if(s==='car')return row('Registration',p.carReg)+row('Make',p.carMake)+row('Model',p.carModel);
-  if(s==='doctor')return row('GP surgery',p.gp)+row('NHS number',p.nhs);
+  if(s==='doctor')return row('GP surgery',p.gp)+row('NHS number',p.nhs)+row('Hospital number',p.hospNo);
+  if(s==='ids')return row('Passport number',p.passNo)+row('Passport expiry',p.passExp)+(p.kind==='adult'?row('Driving licence number',p.licNo)+row('Licence expiry',p.licExp):'');
+  if(s==='pets')return row('Pet names',p.pets);
   if(s==='kin')return row('Name',p.kinName)+row('Relationship',p.kinRel)+row('Phone',p.kinPhone);
 }
 function secEdit(p,s){
@@ -462,13 +466,16 @@ function secEdit(p,s){
   if(s==='school')h=inp('school','School',p.school);
   if(s==='work')h=inp('job','Job title',p.job)+inp('employer','Employer',p.employer);
   if(s==='car')h=inp('carReg','Registration',p.carReg,'text','style="text-transform:uppercase" autocapitalize="characters"')+inp('carMake','Make',p.carMake)+inp('carModel','Model',p.carModel);
-  if(s==='doctor')h=inp('gp','GP surgery',p.gp)+inp('nhs','NHS number (10 digits)',p.nhs,'text','inputmode="numeric" maxlength="12" placeholder="123 456 7890"');
+  if(s==='doctor')h=inp('gp','GP surgery',p.gp)+inp('nhs','NHS number (10 digits)',p.nhs,'text','inputmode="numeric" maxlength="12" placeholder="123 456 7890"')+inp('hospNo','Hospital number',p.hospNo,'text','autocapitalize="characters" placeholder="On your hospital letters"');
+  if(s==='ids')h=inp('passNo','Passport number',p.passNo,'text','autocapitalize="characters" maxlength="12"')+inp('passExp','Passport expiry date',p.passExp,'text','inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10"')+
+    (p.kind==='adult'?inp('licNo','Driving licence number',p.licNo,'text','autocapitalize="characters" maxlength="18" style="text-transform:uppercase"')+inp('licExp','Licence expiry date',p.licExp,'text','inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10"'):'');
+  if(s==='pets')h=inp('pets','Pet names',p.pets,'text','placeholder="e.g. Rex (dog), Tilly (cat)"');
   if(s==='kin')h=inp('kinName','Name',p.kinName)+inp('kinRel','Relationship',p.kinRel)+inp('kinPhone','Phone',p.kinPhone,'tel');
   return `<div class="edit">${h}<div class="btns"><button class="primary" data-act="save">Save</button><button class="secondary" data-act="cancel">Cancel</button></div></div>`;
 }
 function profile(){
   const p=prof();
-  const secs=secsFor(p).map(s=>`<section class="sec"><header><h3>${TITLES[s]}</h3>
+  const secs=secsFor(p).map(s=>`<section class="sec"><header><h3>${s==='ids'&&p.kind!=='adult'?'PASSPORT':TITLES[s]}</h3>
       ${S.editing===s?'':`<button class="link" data-act="edit" data-sec="${s}">Edit</button>`}</header>
       <div class="group">${S.editing===s?secEdit(p,s):secView(p,s)}</div></section>`).join('');
   const custom=`<div class="custom"><label class="photobtn">${p.photo?'Change photo':'Add a photo'}
@@ -485,6 +492,8 @@ function collect(){
   const p=prof(),s=S.editing;
   document.querySelectorAll('[data-f]').forEach(el=>p[el.dataset.f]=el.value.trim());
   if(s==='car')p.carReg=p.carReg.toUpperCase();
+  if(s==='ids'){p.passNo=p.passNo.toUpperCase();if(p.licNo!==undefined)p.licNo=p.licNo.toUpperCase();}
+  if(s==='doctor')p.hospNo=p.hospNo.toUpperCase();
   if(s==='doctor'){const n=p.nhs.replace(/\D/g,'');if(n.length===10)p.nhs=n.slice(0,3)+' '+n.slice(3,6)+' '+n.slice(6);}
   document.querySelectorAll('[data-dob]').forEach(el=>p.dob[el.dataset.dob]=el.value.replace(/\D/g,''));
 }
@@ -507,11 +516,12 @@ const SITES={
   shop:{tab:'Shop',name:'Example Shop',url:'exampleshop.co.uk',title:'Create your account',asks:['about','address','contact']},
   school:{tab:'School',name:'Example Primary School',url:'exampleprimary.sch.uk',title:'School trip form',asks:['about','address','doctor','kin']},
   gp:{tab:'Doctor',name:'Example Health Centre',url:'examplehealth.nhs.uk',title:'Register as a new patient',asks:['about','address','contact','doctor','kin']},
-  ins:{tab:'Car insurance',name:'Example Car Insurance',url:'examplecarcover.co.uk',title:'Get a quote',asks:['about','address','contact','work','car']}
+  ins:{tab:'Car insurance',name:'Example Car Insurance',url:'examplecarcover.co.uk',title:'Get a quote',asks:['about','address','contact','work','car','ids'],skip:['pass']},
+  vet:{tab:'Vet',name:'Example Vets',url:'examplevets.co.uk',title:'Register your pet',asks:['about','address','contact','pets']}
 };
 const DEMO=[['name','Full name','about'],['dob','Date of birth','about'],['addr','Address','address'],['pc','Postcode','address'],
-  ['email','Email','contact'],['phone','Mobile','contact'],['school','School','school'],['employer','Employer','work'],['reg','Car registration','car'],
-  ['gp','GP surgery','doctor'],['nhs','NHS number','doctor'],['kin','Emergency contact','kin']];
+  ['email','Email','contact'],['phone','Mobile','contact'],['school','School','school'],['employer','Employer','work'],['reg','Car registration','car'],['lic','Driving licence number','ids'],['pass','Passport number','ids'],
+  ['gp','GP surgery','doctor'],['nhs','NHS number','doctor'],['hosp','Hospital number','doctor'],['kin','Emergency contact','kin'],['pets','Pet names','pets']];
 function demo(){
   const p=prof(),site=SITES[S.site];
   const sites=Object.entries(SITES).map(([k,v])=>`<button data-act="site" data-s="${k}" aria-pressed="${k===S.site}">${v.tab}</button>`).join('');
@@ -552,7 +562,7 @@ function demo(){
     <p class="note" style="text-align:center">Fill once, remembered always.<br>Designed to speed your day.</p>`;
 }
 const wide=()=>matchMedia('(min-width:1020px)').matches;
-const fieldsHTML=site=>DEMO.filter(([, ,sec])=>site.asks.includes(sec))
+const fieldsHTML=site=>DEMO.filter(([k, ,sec])=>site.asks.includes(sec)&&!(site.skip||[]).includes(k))
   .map(([k,l])=>`<label class="f" for="d-${k}">${l}</label><input class="t" id="d-${k}" data-demo="${k}" readonly>`).join('');
 function qrSVG(seed){
   const n=25;let x=seed*9301+49297;const r=()=>(x=(x*9301+49297)%233280)/233280;
@@ -624,7 +634,8 @@ function runFill(on){
   const data={name:has('about')?`${p.first} ${p.last}`:'',dob:has('about')?dobText(p.dob):'',
     addr:has('address')?`${p.line1}, ${p.town}`:'',pc:has('address')?p.postcode:'',
     email:has('contact')?p.email:'',phone:has('contact')?p.phone:'',school:has('school')?p.school:'',
-    employer:has('work')?p.employer:'',reg:has('car')?p.carReg:'',gp:has('doctor')?p.gp:'',nhs:has('doctor')?p.nhs:'',
+    employer:has('work')?p.employer:'',reg:has('car')?p.carReg:'',gp:has('doctor')?p.gp:'',nhs:has('doctor')?p.nhs:'',hosp:has('doctor')?p.hospNo:'',
+    lic:has('ids')?p.licNo:'',pass:has('ids')?p.passNo:'',pets:has('pets')?p.pets:'',
     kin:has('kin')&&p.kinName?`${p.kinName} (${p.kinRel}) ${p.kinPhone}`:''};
   const els=[...document.querySelectorAll('[data-demo]')];
   els.forEach(e=>{e.value='';e.classList.remove('filled');e.placeholder=''});
@@ -739,7 +750,7 @@ document.addEventListener('click',e=>{
     const adult=profiles.find(p=>p.kind==='adult');
     const c={id:'p'+Date.now(),kind:'child',color:1,photo:'',checked:Date.now(),first:'',last:adult.last,dob:{d:'',m:'',y:''},
       line1:adult.line1,town:adult.town,postcode:adult.postcode,email:'',phone:'',school:'',
-      job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:adult.gp,nhs:'',kinName:`${adult.first} ${adult.last}`,kinRel:'Parent',kinPhone:adult.phone};
+      job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:adult.gp,nhs:'',hospNo:'',kinName:`${adult.first} ${adult.last}`,kinRel:'Parent',kinPhone:adult.phone,passNo:'',passExp:'',licNo:'',licExp:'',pets:''};
     profiles.push(c);S.current=c.id;S.editing='about';S.screen='profile';render();
     document.getElementById('f-first').focus();return;
   }

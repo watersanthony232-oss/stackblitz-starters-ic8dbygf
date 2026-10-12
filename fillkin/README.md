@@ -8,8 +8,9 @@ This is the **app prototype** (restored from the 4 October 2026 version):
 
 - Welcome tour, and a lock screen with a 10-digit passcode or Face ID / fingerprint
 - **Cards:** your card plus children's cards, with photo, colour, "% filled" and reminders to check them
+- **On each card:** about you, address, contact, work, car, **passport and driving licence**, doctor (GP, NHS number, **hospital number**), emergency contact and **pets' names**; children's cards have school and passport
 - **Share:** pick which sections to share (no bank details: Fillkin never asks for or stores bank accounts)
-- **Enter with Fillkin** demo on pretend websites (shop, school, doctor, car insurance), on this phone, on a laptop by QR code, or by tapping a reader
+- **Enter with Fillkin** demo on pretend websites (shop, school, doctor, car insurance, vet), on this phone, on a laptop by QR code, or by tapping a reader
 - **History** of what was shared, and **Settings** (locked backup, reminders, iPhone/Android style, text size)
 
 It uses sample details only, and nothing is saved yet.
