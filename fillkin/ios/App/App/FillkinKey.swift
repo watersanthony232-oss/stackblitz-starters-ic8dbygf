@@ -29,7 +29,8 @@ public class FillkinKeyPlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "loadKey", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "deleteKey", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "verify", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "eraseAll", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "eraseAll", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "shareFile", returnType: CAPPluginReturnPromise)
     ]
 
     private let service = "io.github.watersanthony232.fillkin.unlock"
@@ -146,6 +147,39 @@ public class FillkinKeyPlugin: CAPPlugin, CAPBridgedPlugin {
         SecItemDelete(baseQuery() as CFDictionary)
         try? FileManager.default.removeItem(at: vaultURL)
         call.resolve()
+    }
+
+    // MARK: Locked backup file
+
+    /// Opens the iPhone share sheet so the person can save the (already encrypted)
+    /// backup to Files, iCloud Drive, Google Drive, email and so on.
+    @objc func shareFile(_ call: CAPPluginCall) {
+        guard let name = call.getString("name"), let text = call.getString("data"),
+              let data = text.data(using: .utf8) else {
+            return call.reject("Nothing to share", "nodata")
+        }
+        let safeName = name.replacingOccurrences(of: "/", with: "-")
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(safeName)
+        do {
+            try data.write(to: url, options: .atomic)
+        } catch {
+            return call.reject("Could not make the backup file", "failed")
+        }
+        DispatchQueue.main.async {
+            guard let vc = self.bridge?.viewController else {
+                return call.reject("Could not open the share sheet", "failed")
+            }
+            let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            if let pop = sheet.popoverPresentationController {
+                pop.sourceView = vc.view
+                pop.sourceRect = CGRect(x: vc.view.bounds.midX, y: vc.view.bounds.midY, width: 0, height: 0)
+            }
+            sheet.completionWithItemsHandler = { _, done, _, _ in
+                try? FileManager.default.removeItem(at: url)
+                call.resolve(["saved": done])
+            }
+            vc.present(sheet, animated: true)
+        }
     }
 
     private func baseQuery() -> [String: Any] {

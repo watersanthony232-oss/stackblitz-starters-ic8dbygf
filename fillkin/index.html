@@ -287,7 +287,7 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
   <nav class="tabbar" id="tabs" hidden></nav>
 </div>
 <script>
-const S={screen:'tour',tourStep:0,history:[],stage:'set',first:'',entry:'',busy:false,msg:'',shake:false,current:'p1',editing:null,
+const S={screen:'tour',tourStep:0,history:[],backupAt:null,bstep:null,berr:'',bok:'',bfile:null,stage:'set',first:'',entry:'',busy:false,msg:'',shake:false,current:'p1',editing:null,
   site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets']),bank:null},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
 const BIO=()=>NATIVE?(BIOTYPE==='touchID'?'Touch ID':'Face ID'):S.os==='android'?'fingerprint':'Face ID';
 const Bio=()=>NATIVE?BIO():S.os==='android'?'Fingerprint':'Face ID';
@@ -325,11 +325,11 @@ async function enc(key,text){
 const dec=async(key,box)=>new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(box.iv)},key,unb64(box.ct)));
 const writeV=()=>STORE.write(JSON.stringify(V));
 function snapshot(){
-  return JSON.stringify({profiles,history:S.history,remind:S.remind,zoom:S.zoom,os:S.os,share:[...S.share.secs]});
+  return JSON.stringify({profiles,history:S.history,backupAt:S.backupAt,remind:S.remind,zoom:S.zoom,os:S.os,share:[...S.share.secs]});
 }
 function applyData(d){
   profiles=d.profiles&&d.profiles.length?d.profiles:[blankAdult()];
-  S.history=d.history||[];S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=d.os||S.os;
+  S.history=d.history||[];S.backupAt=d.backupAt||null;S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=d.os||S.os;
   if(d.share)S.share.secs=new Set(d.share);
   S.current=profiles[0].id;
 }
@@ -792,6 +792,48 @@ function runFill(on,bankId){
 }
 
 /* ---------- Backup ---------- */
+/* ---------- Locked backup ----------
+   A backup is a file locked with a backup password (PBKDF2 + AES-GCM). You keep the
+   file wherever you like; only the backup password can open it, not even Fillkin can. */
+async function makeBackup(pw){
+  const salt=b64(crypto.getRandomValues(new Uint8Array(16))),iter=310000;
+  const box=await enc(await pinKey(pw,salt,iter),snapshot());
+  return JSON.stringify({fillkin:'backup',v:1,made:Date.now(),salt,iter,iv:box.iv,ct:box.ct});
+}
+async function openBackup(text,pw){
+  let f;try{f=JSON.parse(text);}catch(e){throw new Error('notbackup');}
+  if(!f||f.fillkin!=='backup'||!f.salt||!f.ct)throw new Error('notbackup');
+  try{return JSON.parse(await dec(await pinKey(pw,f.salt,f.iter),{iv:f.iv,ct:f.ct}));}catch(e){throw new Error('password');}
+}
+async function saveFile(name,text){
+  if(NATIVE)return (await nat('shareFile',{name,data:text})).saved!==false;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));
+  a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  return true;
+}
+const stamp=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}${z(d.getMonth()+1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}`;};
+function backupHTML(){
+  if(S.bstep==='set')return `<div class="edit">
+      <label class="f" for="bpw">Choose a backup password (at least 8 characters)</label><input class="t" id="bpw" type="password" autocomplete="new-password">
+      <label class="f" for="bpw2">Type it again</label><input class="t" id="bpw2" type="password" autocomplete="new-password">
+      ${S.berr?`<p class="msg" role="alert">${esc(S.berr)}</p>`:''}
+      <p class="note" style="margin:10px 0 0">Write it down somewhere safe. If you forget it, nobody can open your backup, not even Fillkin.</p>
+      <div class="btns"><button class="primary" data-act="b-save">Make backup</button>
+      <button class="secondary" data-act="b-cancel">Cancel</button></div></div>`;
+  if(S.bstep==='restore')return `<div class="edit">
+      <label class="f" for="bpw">Backup password</label><input class="t" id="bpw" type="password" autocomplete="current-password">
+      ${S.berr?`<p class="msg" role="alert">${esc(S.berr)}</p>`:''}
+      <p class="note" style="margin:10px 0 0">This replaces the cards on this ${NATIVE?'iPhone':'device'} with the ones in the backup.</p>
+      <div class="btns"><button class="primary" data-act="b-restore">Restore my cards</button>
+      <button class="secondary" data-act="b-cancel">Cancel</button></div></div>`;
+  return `<div class="row"><span>Last backup</span><span>${S.backupAt?when(S.backupAt):'Never'}</span></div>
+    ${S.bok?`<div class="row"><span class="okline">${esc(S.bok)}</span></div>`:''}
+    ${S.berr?`<div class="row"><span class="msg" role="alert" style="margin:0">${esc(S.berr)}</span></div>`:''}
+    <div class="edit" style="padding-top:4px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="secondary" data-act="b-start">Make a backup</button>
+      <label class="secondary" style="cursor:pointer">Restore from a backup<input type="file" data-restore style="position:absolute;opacity:0;width:1px;height:1px"></label></div>`;
+}
+
 /* ---------- Settings tab ---------- */
 function settings(){
   return `<h1 class="big">Settings</h1>
@@ -801,7 +843,8 @@ function settings(){
         ?`<button class="secondary" data-act="bio-off">Turn off ${BIO()}</button>`
         :`<button class="secondary" data-act="bio-start">Turn on ${BIO()}</button>`}</div>`:''}
       <div class="row"><span>Your details are kept</span><span>On this ${NATIVE?'iPhone':'device'} only, locked</span></div></div>
-    <p class="note">Locked backup to a new phone is coming soon. Until then, if you delete Fillkin or lose your phone, your cards can\u2019t be got back.</p>
+    <p class="grouphead">LOCKED BACKUP</p><div class="group">${backupHTML()}</div>
+    <p class="note">Save the backup file somewhere safe, like Files, iCloud Drive, Google Drive or email. If you lose your phone, restore it on the new one with your backup password.</p>
     <p class="grouphead">REMIND ME TO CHECK CHILDREN’S CARDS</p>
     <div class="seg" role="group" aria-label="Reminder for children's cards">${[3,6,12].map(m=>
       `<button data-act="remind" data-m="${m}" aria-pressed="${S.remind===m}">Every ${m} months</button>`).join('')}</div>
@@ -839,6 +882,30 @@ document.addEventListener('click',e=>{
   if(a==='forgot'){
     if(!confirm('Forgot your passcode? The only way back in is to erase Fillkin on this phone and start again. All your cards will be deleted.'))return;
     return erase();}
+  if(a==='b-start'){S.bstep='set';S.berr='';S.bok='';render();document.getElementById('bpw').focus();return;}
+  if(a==='b-cancel'){S.bstep=null;S.berr='';S.bfile=null;return render();}
+  if(a==='b-save'){
+    const p1=document.getElementById('bpw').value,p2=document.getElementById('bpw2').value;
+    if(p1.length<8){S.berr='Use at least 8 characters.';return render();}
+    if(p1!==p2){S.berr='Those passwords don\u2019t match.';return render();}
+    return busy('',async()=>{
+      S.berr='';const file=await makeBackup(p1);
+      let saved;try{saved=await saveFile(`Fillkin backup ${stamp()}.fillkin`,file);}catch(e){S.berr='The backup couldn\u2019t be saved. Try again.';return;}
+      S.bstep=null;
+      if(saved){S.backupAt=Date.now();S.bok='Backup made \u2713 Keep the file somewhere safe.';}
+      else S.bok='';
+    });}
+  if(a==='b-restore'){
+    const pw=document.getElementById('bpw').value;
+    return busy('',async()=>{
+      let d;
+      try{d=await openBackup(S.bfile,pw);}
+      catch(e){S.berr=e.message==='notbackup'?'That file isn\u2019t a Fillkin backup.':'That password isn\u2019t right. Try again.';
+        if(e.message==='notbackup'){S.bstep=null;S.bfile=null;}return;}
+      applyData(d);S.bstep=null;S.bfile=null;S.berr='';
+      S.bok=`Restored ${profiles.length} card${profiles.length===1?'':'s'} \u2713`;
+      await saveNow();
+    });}
   if(a==='erase'){
     if(!confirm('Erase all your Fillkin cards from this phone? This can\u2019t be undone.'))return;
     return erase();}
@@ -888,6 +955,11 @@ document.addEventListener('change',e=>{
   if(t.dataset.bankPick!==undefined){S.share.bank=t.dataset.bankPick;}
   if(t.dataset.sheetSec!==undefined){t.checked?S.sheet.secs.add(t.dataset.sheetSec):S.sheet.secs.delete(t.dataset.sheetSec);}
   if(t.dataset.sheetBank!==undefined){S.sheet.bank=t.dataset.sheetBank;}
+  if(t.dataset.restore!==undefined&&t.files&&t.files[0]){
+    const f=t.files[0];
+    if(f.size>20e6){S.berr='That file is too big to be a Fillkin backup.';return render();}
+    f.text().then(txt=>{S.bfile=txt;S.bstep='restore';S.berr='';S.bok='';render();const i=document.getElementById('bpw');i&&i.focus();});
+    return;}
   if(t.dataset.photo!==undefined&&t.files&&t.files[0]&&t.files[0].type.startsWith('image/')){
     const p=prof(),u=URL.createObjectURL(t.files[0]),img=new Image();
     img.onload=()=>{const c=document.createElement('canvas'),z=Math.min(1,320/Math.max(img.width,img.height));
