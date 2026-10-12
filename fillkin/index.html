@@ -144,7 +144,7 @@ button{cursor:pointer}
 .sec h3{margin:0;font-size:13px;font-weight:500;color:var(--muted)}
 .link{background:none;border:none;color:var(--brand);font-weight:500;font-size:15px;padding:0}
 .row{display:flex;justify-content:space-between;gap:12px;padding:11px 16px;font-size:16px;position:relative}
-.row+.row::before,.choice+.choice::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:1px solid var(--line)}
+.row+.row::before,.bank+.bank::before,.choice+.choice::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:1px solid var(--line)}
 .row span:first-child{color:var(--ink)}
 .row span:last-child{text-align:right;color:var(--muted)}
 .empty{font-style:italic}
@@ -159,7 +159,11 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 .primary{background:var(--brand);color:var(--brand-ink);border:none;border-radius:12px;padding:12px 18px;font-weight:700}
 .primary.wide{width:100%;padding:15px;font-size:17px;border-radius:14px;margin-top:18px}
 .secondary{background:none;border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:500}
+.bank{padding:11px 16px;position:relative}
+.bank b{display:block;font-weight:500}
+.bank small{color:var(--muted)}
 .mono{font-family:"Roboto Mono",Consolas,monospace}
+.bankedit{border:1px solid var(--line);border-radius:12px;padding:2px 12px 12px;margin-top:10px}
 .rm{color:var(--warn);margin-top:10px}
 
 /* iPhone switches */
@@ -282,7 +286,7 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 </div>
 <script>
 const S={screen:'tour',tourStep:0,history:[],backup:{on:false,pw:'',at:null},bstep:null,berr:'',bok:'',stage:'set',first:'',entry:'',pin:null,msg:'',shake:false,current:'p1',editing:null,
-  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets'])},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
+  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets']),bank:null},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
 const BIO=()=>S.os==='android'?'fingerprint':'Face ID';
 const Bio=()=>S.os==='android'?'Fingerprint':'Face ID';
 const BIOICON=()=>S.os==='android'?ICON.finger:ICON.face;
@@ -292,11 +296,13 @@ let profiles=[
    email:'alex@example.com',phone:'07700 900123',school:'',
    job:'Shop manager',employer:'Example Stores Ltd',carReg:'AB12 CDE',carMake:'Ford',carModel:'Fiesta',
    gp:'Example Health Centre',nhs:'485 777 3456',hospNo:'K1234567',kinName:'Sam Sample',kinRel:'Partner',kinPhone:'07700 900456',
-   passNo:'123456789',passExp:'01/05/2031',licNo:'SAMPL853145A99AB',licExp:'14/03/2033',pets:'Rex (dog), Tilly (cat)'},
+   passNo:'123456789',passExp:'01/05/2031',licNo:'SAMPL853145A99AB',licExp:'14/03/2033',pets:'Rex (dog), Tilly (cat)',
+   banks:[{id:'b1',label:'Everyday account',name:'A Sample',sort:'12-34-56',acc:'12345678'},
+          {id:'b2',label:'Savings',name:'A Sample',sort:'65-43-21',acc:'87654321'}]},
   {id:'p2',kind:'child',color:1,photo:'',checked:Date.now()-7*2629800000,first:'Mia',last:'Sample',dob:{d:'02',m:'09',y:'2016'},line1:'12 Example Street',town:'Southampton',postcode:'SO15 1AA',
    email:'',phone:'',school:'Example Primary School',
    job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:'Example Health Centre',nhs:'',hospNo:'',kinName:'Alex Sample',kinRel:'Parent',kinPhone:'07700 900123',
-   passNo:'',passExp:'',licNo:'',licExp:'',pets:''}
+   passNo:'',passExp:'',licNo:'',licExp:'',pets:'',banks:[]}
 ];
 
 const ICON={
@@ -315,22 +321,23 @@ const ICON={
   chev:'<svg viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>'
 };
 const COLORS=[['#3A3FB8','#5A2FA8'],['#1E8E74','#2A6FB0'],['#C2336E','#7A2FB0'],['#1E7A52','#145C6E'],['#2B2F45','#4A4F6B']];
-const TITLES={ids:'PASSPORT AND DRIVING LICENCE',pets:'PETS',about:'ABOUT',address:'HOME ADDRESS',contact:'CONTACT',work:'WORK',car:'CAR',doctor:'DOCTOR',kin:'EMERGENCY CONTACT',school:'SCHOOL'};
+const TITLES={ids:'PASSPORT AND DRIVING LICENCE',pets:'PETS',banks:'BANK ACCOUNTS',about:'ABOUT',address:'HOME ADDRESS',contact:'CONTACT',work:'WORK',car:'CAR',doctor:'DOCTOR',kin:'EMERGENCY CONTACT',school:'SCHOOL'};
 const NICE={ids:'Passport and licence',pets:'Pets',about:'About',address:'Home address',contact:'Contact',work:'Work',car:'Car',doctor:'Doctor',kin:'Emergency contact',school:'School'};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dobOk=d=>d&&d.d.length===2&&d.m.length===2&&d.y.length===4;
 const dobText=d=>dobOk(d)?`${d.d}/${d.m}/${d.y}`:'';
-const secsFor=p=>p.kind==='adult'?['about','address','contact','work','car','ids','doctor','kin','pets']:['about','address','school','ids','doctor','kin'];
+const secsFor=p=>p.kind==='adult'?['about','address','contact','work','car','ids','doctor','kin','pets','banks']:['about','address','school','ids','doctor','kin'];
 const prof=()=>profiles.find(p=>p.id===S.current)||profiles[0];
 function fillPct(p){
   const f=[p.first,p.last,dobOk(p.dob)?1:'',p.line1,p.town,p.postcode];
-  if(p.kind==='adult')f.push(p.email,p.phone,p.job,p.employer,p.carReg);else f.push(p.school);
+  if(p.kind==='adult')f.push(p.email,p.phone,p.job,p.employer,p.carReg,p.banks.length?1:'');else f.push(p.school);
   f.push(p.gp,p.nhs,p.kinName,p.kinPhone);
   return Math.round(f.filter(Boolean).length/f.length*100);
 }
 const val=v=>v?esc(v):'<span class="empty">Not added yet</span>';
 const row=(l,v)=>`<div class="row"><span>${l}</span><span>${val(v)}</span></div>`;
 const inp=(f,l,v,type='text',extra='')=>`<label class="f" for="f-${f}">${l}</label><input class="t" id="f-${f}" data-f="${f}" type="${type}" value="${esc(v)}" ${extra}>`;
+const mask=a=>a?'••••'+a.slice(-4):'';
 const backBtn=(act,label)=>`<div class="navrow"><button class="back" data-act="${act}" aria-label="Back to ${esc(label)}">${S.os==='android'?ICON.arrow.replace('<svg','<svg style="width:24px;height:24px"'):ICON.chev+esc(label)}</button></div>`;
 const MONTH=2629800000;
 const monthsAgo=p=>Math.floor((Date.now()-p.checked)/MONTH);
@@ -453,6 +460,9 @@ function secView(p,s){
   if(s==='ids')return row('Passport number',p.passNo)+row('Passport expiry',p.passExp)+(p.kind==='adult'?row('Driving licence number',p.licNo)+row('Licence expiry',p.licExp):'');
   if(s==='pets')return row('Pet names',p.pets);
   if(s==='kin')return row('Name',p.kinName)+row('Relationship',p.kinRel)+row('Phone',p.kinPhone);
+  if(s==='banks')return p.banks.length?p.banks.map(b=>`<div class="bank"><b>${esc(b.label)}</b>
+      <small>Sort code <span class="mono">${esc(b.sort)}</span>, account <span class="mono">${mask(b.acc)}</span></small></div>`).join('')
+    :'<div class="row"><span class="empty">No bank accounts added yet</span></div>';
 }
 function secEdit(p,s){
   let h='';
@@ -471,6 +481,13 @@ function secEdit(p,s){
     (p.kind==='adult'?inp('licNo','Driving licence number',p.licNo,'text','autocapitalize="characters" maxlength="18" style="text-transform:uppercase"')+inp('licExp','Licence expiry date',p.licExp,'text','inputmode="numeric" placeholder="DD/MM/YYYY" maxlength="10"'):'');
   if(s==='pets')h=inp('pets','Pet names',p.pets,'text','placeholder="e.g. Rex (dog), Tilly (cat)"');
   if(s==='kin')h=inp('kinName','Name',p.kinName)+inp('kinRel','Relationship',p.kinRel)+inp('kinPhone','Phone',p.kinPhone,'tel');
+  if(s==='banks')h=p.banks.map((b,i)=>`<div class="bankedit">
+      <label class="f">Account nickname</label><input class="t" data-b="label" value="${esc(b.label)}">
+      <label class="f">Name on account</label><input class="t" data-b="name" value="${esc(b.name)}">
+      <label class="f">Sort code</label><input class="t mono" data-b="sort" inputmode="numeric" maxlength="8" placeholder="12-34-56" value="${esc(b.sort)}">
+      <label class="f">Account number</label><input class="t mono" data-b="acc" inputmode="numeric" maxlength="8" value="${esc(b.acc)}">
+      <button class="link rm" data-act="rmbank" data-i="${i}">Remove this account</button></div>`).join('')+
+    `<p><button class="link" data-act="addbank">+ Add another account</button></p>`;
   return `<div class="edit">${h}<div class="btns"><button class="primary" data-act="save">Save</button><button class="secondary" data-act="cancel">Cancel</button></div></div>`;
 }
 function profile(){
@@ -490,6 +507,13 @@ function profile(){
 }
 function collect(){
   const p=prof(),s=S.editing;
+  if(s==='banks'){
+    p.banks=[...document.querySelectorAll('.bankedit')].map((el,i)=>{
+      const g=k=>el.querySelector(`[data-b="${k}"]`).value.trim();
+      return {id:p.banks[i]?.id||('b'+Date.now()+i),label:g('label')||'Bank account',name:g('name'),sort:g('sort'),acc:g('acc').replace(/\D/g,'')};
+    });
+    return;
+  }
   document.querySelectorAll('[data-f]').forEach(el=>p[el.dataset.f]=el.value.trim());
   if(s==='car')p.carReg=p.carReg.toUpperCase();
   if(s==='ids'){p.passNo=p.passNo.toUpperCase();if(p.licNo!==undefined)p.licNo=p.licNo.toUpperCase();}
@@ -501,12 +525,17 @@ function collect(){
 /* ---------- Share tab ---------- */
 function share(){
   const p=prof();
+  if(p.banks.length&&S.share.bank!==''&&!p.banks.find(b=>b.id===S.share.bank))S.share.bank=p.banks[0].id;
   const seg=profiles.length>1?`<div class="seg" role="group" aria-label="Whose card">${profiles.map(x=>
     `<button data-act="pick" data-id="${x.id}" aria-pressed="${x.id===p.id}">${esc(x.first||'New')}</button>`).join('')}</div>`:'';
-  const secs=secsFor(p).map(s=>`<label class="choice"><span>${NICE[s]}</span>
+  const secs=secsFor(p).filter(s=>s!=='banks').map(s=>`<label class="choice"><span>${NICE[s]}</span>
       <input type="checkbox" class="switch" data-share="${s}" ${S.share.secs.has(s)?'checked':''}></label>`).join('');
+  const banks=p.banks.length?`<p class="grouphead">WHICH BANK ACCOUNT?</p><div class="group">
+      <label class="choice"><span>Don\u2019t share bank details</span><input type="radio" class="radio" name="bk" data-bank-pick="" ${S.share.bank===''?'checked':''}></label>
+      ${p.banks.map(b=>`<label class="choice"><span>${esc(b.label)} <small class="mono">${mask(b.acc)}</small></span>
+      <input type="radio" class="radio" name="bk" data-bank-pick="${b.id}" ${S.share.bank===b.id?'checked':''}></label>`).join('')}</div>`:'';
   return `<h1 class="big">Share</h1><p class="sub">Your usual choices. You can change them every time.</p>
-    ${seg}<p class="grouphead">WHAT TO SHARE</p><div class="group">${secs}</div>
+    ${seg}<p class="grouphead">WHAT TO SHARE</p><div class="group">${secs}</div>${banks}
     <p class="note">You choose every time. Nothing is sent without ${BIO()} or your passcode.</p>
     <button class="primary wide" data-act="demo">Try it on a website</button>`;
 }
@@ -516,12 +545,12 @@ const SITES={
   shop:{tab:'Shop',name:'Example Shop',url:'exampleshop.co.uk',title:'Create your account',asks:['about','address','contact']},
   school:{tab:'School',name:'Example Primary School',url:'exampleprimary.sch.uk',title:'School trip form',asks:['about','address','doctor','kin']},
   gp:{tab:'Doctor',name:'Example Health Centre',url:'examplehealth.nhs.uk',title:'Register as a new patient',asks:['about','address','contact','doctor','kin']},
-  ins:{tab:'Car insurance',name:'Example Car Insurance',url:'examplecarcover.co.uk',title:'Get a quote',asks:['about','address','contact','work','car','ids'],skip:['pass']},
+  ins:{tab:'Car insurance',name:'Example Car Insurance',url:'examplecarcover.co.uk',title:'Get a quote',asks:['about','address','contact','work','car','ids','banks'],skip:['pass']},
   vet:{tab:'Vet',name:'Example Vets',url:'examplevets.co.uk',title:'Register your pet',asks:['about','address','contact','pets']}
 };
 const DEMO=[['name','Full name','about'],['dob','Date of birth','about'],['addr','Address','address'],['pc','Postcode','address'],
   ['email','Email','contact'],['phone','Mobile','contact'],['school','School','school'],['employer','Employer','work'],['reg','Car registration','car'],['lic','Driving licence number','ids'],['pass','Passport number','ids'],
-  ['gp','GP surgery','doctor'],['nhs','NHS number','doctor'],['hosp','Hospital number','doctor'],['kin','Emergency contact','kin'],['pets','Pet names','pets']];
+  ['gp','GP surgery','doctor'],['nhs','NHS number','doctor'],['hosp','Hospital number','doctor'],['kin','Emergency contact','kin'],['pets','Pet names','pets'],['sort','Sort code','banks'],['acc','Account number','banks']];
 function demo(){
   const p=prof(),site=SITES[S.site];
   const sites=Object.entries(SITES).map(([k,v])=>`<button data-act="site" data-s="${k}" aria-pressed="${k===S.site}">${v.tab}</button>`).join('');
@@ -607,17 +636,22 @@ function openSheet(){
   const p=prof(),site=SITES[S.site];
   const have=site.asks.filter(x=>secsFor(p).includes(x));
   const missing=site.asks.filter(x=>!secsFor(p).includes(x));
-  S.sheet={secs:new Set(have.filter(x=>S.share.secs.has(x)))};
-  const rows=have.map(x=>`<label class="choice"><span>${NICE[x]}</span>
+  const wantsBank=have.includes('banks')&&p.banks.length;
+  S.sheet={secs:new Set(have.filter(x=>x!=='banks'&&S.share.secs.has(x))),bank:wantsBank?(S.share.bank===''?'':(p.banks.find(b=>b.id===S.share.bank)||p.banks[0]).id):''};
+  const rows=have.filter(x=>x!=='banks').map(x=>`<label class="choice"><span>${NICE[x]}</span>
     <input type="checkbox" class="switch" data-sheet-sec="${x}" ${S.sheet.secs.has(x)?'checked':''}></label>`).join('');
-  const miss=missing.length?`<p class="note">Not on ${esc(p.first||'this')}\u2019s card: ${missing.map(x=>NICE[x]).join(', ')}. You\u2019ll type those yourself.</p>`:'';
+  const bank=wantsBank?`<p class="grouphead">BANK ACCOUNT</p><div class="group">
+    <label class="choice"><span>Don\u2019t share</span><input type="radio" class="radio" name="sbk" data-sheet-bank="" ${S.sheet.bank===''?'checked':''}></label>
+    ${p.banks.map(b=>`<label class="choice"><span>${esc(b.label)} <small class="mono">${mask(b.acc)}</small></span>
+    <input type="radio" class="radio" name="sbk" data-sheet-bank="${b.id}" ${S.sheet.bank===b.id?'checked':''}></label>`).join('')}</div>`:'';
+  const miss=missing.length?`<p class="note">Not on ${esc(p.first||'this')}\u2019s card: ${missing.map(x=>x==='banks'?'Bank account':NICE[x]).join(', ')}. You\u2019ll type those yourself.</p>`:'';
   const w=document.createElement('div');w.className='sheetwrap';
   w.innerHTML=`<div class="sheet" role="dialog" aria-modal="true" aria-label="Fillkin">
     <div class="handle" aria-hidden="true"></div>
     <div class="sheethead"><span class="mini" aria-hidden="true"></span>Fillkin</div>
     <p class="sheettitle">${site.name}${S.mode==='laptop'?' on your laptop':S.mode==='tap'?' reception':''} wants to fill in:</p>
     <p class="sub" style="margin:0 0 4px">From ${esc(p.first||'this')}\u2019s card</p>
-    <div class="group">${rows}</div>${miss}
+    <div class="group">${rows}</div>${bank}${miss}
     <button class="primary wide" data-act="sheet-go">${BIOICON()}Fill in with ${BIO()}</button>
     <button class="link cancel" data-act="sheet-cancel">Cancel</button>
     <p class="note" style="text-align:center">${site.name} only gets what you switch on.</p></div>`;
@@ -625,10 +659,10 @@ function openSheet(){
   w.querySelector('[data-act="sheet-go"]').focus();
 }
 function closeSheet(){const w=document.querySelector('.sheetwrap');w&&w.remove();}
-function runFill(on){
+function runFill(on,bankId){
   if(S.filling)return;S.filling=true;
-  const p=prof(),has=x=>on.has(x)&&secsFor(p).includes(x);
-  const site=SITES[S.site],sent=site.asks.filter(has).map(x=>NICE[x]);
+  const p=prof(),b=p.banks.find(x=>x.id===bankId),has=x=>on.has(x)&&secsFor(p).includes(x);
+  const site=SITES[S.site],sent=site.asks.filter(x=>x==='banks'?!!b:has(x)).map(x=>x==='banks'?'Bank account ('+b.label+')':NICE[x]);
   S.history.unshift({site:site.name,who:p.first||'New',where:{phone:'on this iPhone',laptop:'on a laptop (QR)',tap:'at the desk (tap)'}[S.mode],
     items:sent.length?sent.join(', '):'nothing',t:Date.now()});
   const data={name:has('about')?`${p.first} ${p.last}`:'',dob:has('about')?dobText(p.dob):'',
@@ -636,6 +670,7 @@ function runFill(on){
     email:has('contact')?p.email:'',phone:has('contact')?p.phone:'',school:has('school')?p.school:'',
     employer:has('work')?p.employer:'',reg:has('car')?p.carReg:'',gp:has('doctor')?p.gp:'',nhs:has('doctor')?p.nhs:'',hosp:has('doctor')?p.hospNo:'',
     lic:has('ids')?p.licNo:'',pass:has('ids')?p.passNo:'',pets:has('pets')?p.pets:'',
+    sort:b?b.sort:'',acc:b?b.acc:'',
     kin:has('kin')&&p.kinName?`${p.kinName} (${p.kinRel}) ${p.kinPhone}`:''};
   const els=[...document.querySelectorAll('[data-demo]')];
   els.forEach(e=>{e.value='';e.classList.remove('filled');e.placeholder=''});
@@ -645,7 +680,7 @@ function runFill(on){
     if(i>=els.length){S.filling=false;return;}
     const e=els[i++],v=data[e.dataset.demo]||'';
     if(!v){const sec=DEMO.find(x=>x[0]===e.dataset.demo)[2];
-      e.placeholder=has(sec)?'Not on the card yet – type it yourself':'Not shared – type it yourself';return next();}
+      e.placeholder=(sec==='banks'?!!b:has(sec))?'Not on the card yet – type it yourself':'Not shared – type it yourself';return next();}
     if(reduce){e.value=v;e.classList.add('filled');return next();}
     let c=0;const t=setInterval(()=>{e.value=v.slice(0,++c);if(c>=v.length){clearInterval(t);e.classList.add('filled');setTimeout(next,60);}},18);
   })();
@@ -735,22 +770,24 @@ document.addEventListener('click',e=>{
   if(a==='color'){prof().color=+b.dataset.c;return render();}
   if(a==='tap')return tapReader();
   if(a==='sheet-cancel')return closeSheet();
-  if(a==='sheet-go'){const on=S.sheet.secs;closeSheet();return faceId(()=>runFill(on));}
+  if(a==='sheet-go'){const on=S.sheet.secs,bk=S.sheet.bank;closeSheet();return faceId(()=>runFill(on,bk));}
   if(a==='lock'){S.screen='lock';S.stage='enter';S.entry='';S.msg='';return render();}
   if(a==='tab'){S.screen=b.dataset.t;S.editing=null;return render();}
   if(a==='tab-share'){S.screen='share';return render();}
   if(a==='open'){S.current=b.dataset.id;S.editing=null;S.screen='profile';return render();}
-  if(a==='pick'){S.current=b.dataset.id;S.camMsg='';return render();}
+  if(a==='pick'){S.current=b.dataset.id;S.share.bank=null;S.camMsg='';return render();}
   if(a==='home'){S.screen='home';S.editing=null;return render();}
   if(a==='edit'){S.editing=b.dataset.sec;render();const f=document.querySelector('.edit input');f&&f.focus();return;}
   if(a==='cancel'){S.editing=null;return render();}
   if(a==='save'){collect();prof().checked=Date.now();S.editing=null;return render();}
   if(a==='checked'){prof().checked=Date.now();return render();}
+  if(a==='addbank'){collect();prof().banks.push({id:'b'+Date.now(),label:'',name:'',sort:'',acc:''});return render();}
+  if(a==='rmbank'){collect();prof().banks.splice(+b.dataset.i,1);return render();}
   if(a==='addchild'){
     const adult=profiles.find(p=>p.kind==='adult');
     const c={id:'p'+Date.now(),kind:'child',color:1,photo:'',checked:Date.now(),first:'',last:adult.last,dob:{d:'',m:'',y:''},
       line1:adult.line1,town:adult.town,postcode:adult.postcode,email:'',phone:'',school:'',
-      job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:adult.gp,nhs:'',hospNo:'',kinName:`${adult.first} ${adult.last}`,kinRel:'Parent',kinPhone:adult.phone,passNo:'',passExp:'',licNo:'',licExp:'',pets:''};
+      job:'',employer:'',carReg:'',carMake:'',carModel:'',gp:adult.gp,nhs:'',hospNo:'',kinName:`${adult.first} ${adult.last}`,kinRel:'Parent',kinPhone:adult.phone,passNo:'',passExp:'',licNo:'',licExp:'',pets:'',banks:[]};
     profiles.push(c);S.current=c.id;S.editing='about';S.screen='profile';render();
     document.getElementById('f-first').focus();return;
   }
@@ -761,7 +798,9 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
   const t=e.target;
   if(t.dataset.share!==undefined){t.checked?S.share.secs.add(t.dataset.share):S.share.secs.delete(t.dataset.share);}
+  if(t.dataset.bankPick!==undefined){S.share.bank=t.dataset.bankPick;}
   if(t.dataset.sheetSec!==undefined){t.checked?S.sheet.secs.add(t.dataset.sheetSec):S.sheet.secs.delete(t.dataset.sheetSec);}
+  if(t.dataset.sheetBank!==undefined){S.sheet.bank=t.dataset.sheetBank;}
   if(t.dataset.photo!==undefined&&t.files&&t.files[0]&&t.files[0].type.startsWith('image/')){
     const p=prof();if(p.photo)URL.revokeObjectURL(p.photo);p.photo=URL.createObjectURL(t.files[0]);render();}
 });
