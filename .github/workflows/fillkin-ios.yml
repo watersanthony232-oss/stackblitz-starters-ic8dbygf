@@ -2,6 +2,7 @@ name: Fillkin iOS
 
 on:
   push:
+    branches: [main]
     paths: ['fillkin/**', '.github/workflows/fillkin-ios.yml']
   pull_request:
     paths: ['fillkin/**', '.github/workflows/fillkin-ios.yml']
