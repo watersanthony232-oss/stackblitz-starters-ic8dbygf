@@ -220,7 +220,7 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 .copyrow{align-items:center;gap:10px}
 .copyrow span:first-child{user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;text-align:left}
 .copyrow small{color:var(--muted)}
-.copymsg{position:sticky;top:0;z-index:2;background:var(--bg);min-height:1.4em;margin:6px 0;padding:6px 0}
+.copymsg{position:sticky;top:0;z-index:2;background:var(--bg);min-height:1.4em;margin:6px 0;padding:6px 0;font-size:15px}
 .copybtn{flex:none;min-height:44px;padding:0 16px;margin:0}
 .secondary.wide{width:100%;padding:14px;font-size:17px;border-radius:14px;margin-top:10px;color:var(--ink)}
 /* Enter with Fillkin: always black with white writing (4 Oct 2026) */
@@ -336,7 +336,7 @@ function snapshot(){
 }
 function applyData(d){
   profiles=d.profiles&&d.profiles.length?d.profiles:[blankAdult()];
-  S.history=d.history||[];S.backupAt=d.backupAt||null;S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=d.os||S.os;
+  S.history=d.history||[];S.backupAt=d.backupAt||null;S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=NATIVE?'ios':(d.os||S.os);
   if(d.share)S.share.secs=new Set(d.share);
   S.current=profiles[0].id;
 }
@@ -686,7 +686,7 @@ function useScreen(){
     :`<div class="group emptybox">Nothing to use yet.<br>Fill in ${esc(p.first||'this')}’s card, and switch on what to share on the Share tab.</div>`;
   return `${backBtn('tab-share','Share')}<h1 class="big">Use on a real form</h1>
     <p class="sub">Tap Copy, then paste it into the form. Or send a summary.</p>
-    ${seg}<p class="msg okline copymsg" role="status">${esc(S.copyMsg)}</p>${list}
+    ${seg}<p class="${/✓/.test(S.copyMsg)?'okline':'msg'} copymsg" role="status">${esc(S.copyMsg)}</p>${list}
     ${items.length?`<button class="primary wide" data-act="send-pdf">Share as PDF</button>
     <button class="secondary wide" data-act="send-text">Share as text</button>`:''}
     <p class="note">Only the details switched on in Share are here${p.banks.length?', with the bank account you picked':''}. Passport and licence are off unless you turn them on. A PDF or text summary isn’t locked, so only send it to people you trust.</p>`;
@@ -970,13 +970,16 @@ function settings(){
     <div class="seg" role="group" aria-label="Reminder for children's cards">${[3,6,12].map(m=>
       `<button data-act="remind" data-m="${m}" aria-pressed="${S.remind===m}">Every ${m} months</button>`).join('')}</div>
     <p class="note">Your own card is checked once a year. You also get a phone notification when one is due.</p>
-    <p class="grouphead">PHONE STYLE</p>
+    ${NATIVE?'':`<p class="grouphead">PHONE STYLE</p>
     <div class="seg" role="group" aria-label="Phone style">
       <button data-act="os" data-o="ios" aria-pressed="${S.os==='ios'}">iPhone</button>
-      <button data-act="os" data-o="android" aria-pressed="${S.os==='android'}">Android</button></div>
+      <button data-act="os" data-o="android" aria-pressed="${S.os==='android'}">Android</button></div>`}
     <p class="grouphead">TEXT SIZE</p>
     <div class="seg" role="group" aria-label="Text size">${SIZES.map(([l,z])=>
       `<button data-act="zoom" data-z="${z}" aria-pressed="${S.zoom===z}">${l}</button>`).join('')}</div>
+    <p class="grouphead">ABOUT</p><div class="group">
+      <a class="row" href="https://watersanthony232-oss.github.io/stackblitz-starters-ic8dbygf/privacy.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><span>Privacy policy</span><span aria-hidden="true">&rsaquo;</span></a>
+      <a class="row" href="mailto:tony@tozindustries.com?subject=Fillkin" style="color:inherit;text-decoration:none"><span>Help and feedback</span><span>Email us &rsaquo;</span></a></div>
     <button class="primary wide" data-act="lock">Lock Fillkin now</button>
     <button class="link" data-act="tour-again" style="display:block;margin:16px auto 0">Show the welcome tour again</button>
     <button class="link" data-act="erase" style="display:block;margin:16px auto 0;color:var(--warn)">Erase Fillkin from this ${NATIVE?'iPhone':'device'}</button>

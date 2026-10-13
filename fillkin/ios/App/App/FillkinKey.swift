@@ -137,6 +137,13 @@ public class FillkinKeyPlugin: CAPPlugin, CAPBridgedPlugin {
             try FileManager.default.createDirectory(at: vaultURL.deletingLastPathComponent(),
                                                     withIntermediateDirectories: true)
             try data.write(to: vaultURL, options: [.atomic, .completeFileProtection])
+            // Keep the locked file out of iCloud / computer backups: it stays on this
+            // iPhone only. People move to a new phone with their own locked backup file.
+            // (Set again after every write, because an atomic write replaces the file.)
+            var url = vaultURL
+            var values = URLResourceValues()
+            values.isExcludedFromBackup = true
+            try url.setResourceValues(values)
             call.resolve()
         } catch {
             call.reject("Could not save: \(error.localizedDescription)", "failed")
