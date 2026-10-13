@@ -336,7 +336,7 @@ function snapshot(){
 }
 function applyData(d){
   profiles=d.profiles&&d.profiles.length?d.profiles:[blankAdult()];
-  S.history=d.history||[];S.backupAt=d.backupAt||null;S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=d.os||S.os;
+  S.history=d.history||[];S.backupAt=d.backupAt||null;S.remind=d.remind||6;S.zoom=d.zoom||S.zoom;S.os=NATIVE?'ios':(d.os||S.os);
   if(d.share)S.share.secs=new Set(d.share);
   S.current=profiles[0].id;
 }
@@ -970,13 +970,16 @@ function settings(){
     <div class="seg" role="group" aria-label="Reminder for children's cards">${[3,6,12].map(m=>
       `<button data-act="remind" data-m="${m}" aria-pressed="${S.remind===m}">Every ${m} months</button>`).join('')}</div>
     <p class="note">Your own card is checked once a year. You also get a phone notification when one is due.</p>
-    <p class="grouphead">PHONE STYLE</p>
+    ${NATIVE?'':`<p class="grouphead">PHONE STYLE</p>
     <div class="seg" role="group" aria-label="Phone style">
       <button data-act="os" data-o="ios" aria-pressed="${S.os==='ios'}">iPhone</button>
-      <button data-act="os" data-o="android" aria-pressed="${S.os==='android'}">Android</button></div>
+      <button data-act="os" data-o="android" aria-pressed="${S.os==='android'}">Android</button></div>`}
     <p class="grouphead">TEXT SIZE</p>
     <div class="seg" role="group" aria-label="Text size">${SIZES.map(([l,z])=>
       `<button data-act="zoom" data-z="${z}" aria-pressed="${S.zoom===z}">${l}</button>`).join('')}</div>
+    <p class="grouphead">ABOUT</p><div class="group">
+      <a class="row" href="https://watersanthony232-oss.github.io/stackblitz-starters-ic8dbygf/privacy.html" target="_blank" rel="noopener" style="color:inherit;text-decoration:none"><span>Privacy policy</span><span aria-hidden="true">&rsaquo;</span></a>
+      <a class="row" href="mailto:tony@tozindustries.com?subject=Fillkin" style="color:inherit;text-decoration:none"><span>Help and feedback</span><span>Email us &rsaquo;</span></a></div>
     <button class="primary wide" data-act="lock">Lock Fillkin now</button>
     <button class="link" data-act="tour-again" style="display:block;margin:16px auto 0">Show the welcome tour again</button>
     <button class="link" data-act="erase" style="display:block;margin:16px auto 0;color:var(--warn)">Erase Fillkin from this ${NATIVE?'iPhone':'device'}</button>
