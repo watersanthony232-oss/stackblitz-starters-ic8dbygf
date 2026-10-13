@@ -154,22 +154,38 @@ public class FillkinKeyPlugin: CAPPlugin, CAPBridgedPlugin {
     /// Opens the iPhone share sheet so the person can save the (already encrypted)
     /// backup to Files, iCloud Drive, Google Drive, email and so on.
     @objc func shareFile(_ call: CAPPluginCall) {
-        guard let name = call.getString("name"), let text = call.getString("data"),
-              let data = text.data(using: .utf8) else {
+        // "data" is UTF-8 text (backup or summary); "b64" is binary (a PDF).
+        // With asText, the text itself is shared (for Messages, WhatsApp, Notes), not a file.
+        guard let name = call.getString("name") else {
+            return call.reject("Nothing to share", "nodata")
+        }
+        let asText = call.getBool("asText") ?? false
+        var data: Data?
+        if let b64 = call.getString("b64") {
+            data = Data(base64Encoded: b64)
+        } else if let text = call.getString("data") {
+            data = text.data(using: .utf8)
+        }
+        guard let fileData = data else {
             return call.reject("Nothing to share", "nodata")
         }
         let safeName = name.replacingOccurrences(of: "/", with: "-")
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(safeName)
-        do {
-            try data.write(to: url, options: .atomic)
-        } catch {
-            return call.reject("Could not make the backup file", "failed")
+        var items: [Any] = [url]
+        if asText, let text = call.getString("data") {
+            items = [text]
+        } else {
+            do {
+                try fileData.write(to: url, options: [.atomic, .completeFileProtection])
+            } catch {
+                return call.reject("Could not make the file", "failed")
+            }
         }
         DispatchQueue.main.async {
             guard let vc = self.bridge?.viewController else {
                 return call.reject("Could not open the share sheet", "failed")
             }
-            let sheet = UIActivityViewController(activityItems: [url], applicationActivities: nil)
+            let sheet = UIActivityViewController(activityItems: items, applicationActivities: nil)
             if let pop = sheet.popoverPresentationController {
                 pop.sourceView = vc.view
                 pop.sourceRect = CGRect(x: vc.view.bounds.midX, y: vc.view.bounds.midY, width: 0, height: 0)
