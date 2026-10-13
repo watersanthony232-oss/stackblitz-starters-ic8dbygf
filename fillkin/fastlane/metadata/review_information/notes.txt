@@ -1,0 +1,10 @@
+Fillkin has no account and no server. Everything the user types is encrypted on the device (AES-256-GCM, with the key wrapped by a 10-digit passcode using PBKDF2; optionally stored in the Keychain behind Face ID, this device only). The data file is excluded from iCloud backups.
+
+To try it:
+1. Tap Get started, then choose any 10-digit passcode (for example 1234567890) and enter it again.
+2. Fill in a few details on the card (use made-up details), and tap Save.
+3. Go to Share > Use on a real form. Tap Copy next to a detail, then paste it into any app. Share as PDF and Share as text open the standard share sheet.
+4. Share > Practise on a pretend website is a built-in practice screen: it shows how "Enter with Fillkin" fills in example forms (shop, school, doctor, car insurance, vet). These example forms are part of the app, are clearly labelled as pretend, and send nothing anywhere.
+5. Settings has the locked backup (saved through the share sheet with a backup password), Face ID on/off, the privacy policy link, and Erase.
+
+The app makes no network requests, and contains no analytics, adverts or third-party SDKs.
