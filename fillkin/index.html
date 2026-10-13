@@ -216,6 +216,13 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 .browser input.t{background:#F4F5FA;border-color:#DDE1EC;color:#141A3A}
 .browser input.t.filled{border-color:#27B894}
 .browser .withbtn{background:#fff;border-color:#141A3A;color:#141A3A}
+/* Use on a real form */
+.copyrow{align-items:center;gap:10px}
+.copyrow span:first-child{user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;text-align:left}
+.copyrow small{color:var(--muted)}
+.copymsg{position:sticky;top:0;z-index:2;background:var(--bg);min-height:1.4em;margin:6px 0;padding:6px 0}
+.copybtn{flex:none;min-height:44px;padding:0 16px;margin:0}
+.secondary.wide{width:100%;padding:14px;font-size:17px;border-radius:14px;margin-top:10px;color:var(--ink)}
 /* Enter with Fillkin: always black with white writing (4 Oct 2026) */
 .withbtn,.browser .withbtn{background:#000;border-color:#000;color:#fff}
 .withbtn .mini{border-color:#fff}
@@ -288,7 +295,7 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 </div>
 <script>
 const S={screen:'tour',tourStep:0,history:[],backupAt:null,bstep:null,berr:'',bok:'',bfile:null,stage:'set',first:'',entry:'',busy:false,msg:'',shake:false,current:'p1',editing:null,
-  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets']),bank:null},filling:false,zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
+  site:'shop',sheet:null,mode:'phone',qr:false,camMsg:'',share:{secs:new Set(['about','address','contact','school','work','car','doctor','kin','pets']),bank:null},filling:false,copyMsg:'',zoom:1.15,remind:6,os:/Android/i.test(navigator.userAgent)?'android':'ios'};
 const BIO=()=>NATIVE?(BIOTYPE==='touchID'?'Touch ID':'Face ID'):S.os==='android'?'fingerprint':'Face ID';
 const Bio=()=>NATIVE?BIO():S.os==='android'?'Fingerprint':'Face ID';
 const BIOICON=()=>(NATIVE?BIOTYPE==='touchID':S.os==='android')?ICON.finger:ICON.face;
@@ -425,12 +432,12 @@ const SIZES=[['Standard',1],['Large',1.15],['Extra large',1.3]];
 function render(){
   document.querySelector('.phone').classList.toggle('android',S.os==='android');
   document.documentElement.style.setProperty('--z',S.zoom);
-  document.getElementById('app').innerHTML=({tour,lock,home,profile,share,demo,history:historyScreen,settings})[S.screen]();
+  document.getElementById('app').innerHTML=({tour,lock,home,profile,share,use:useScreen,demo,history:historyScreen,settings})[S.screen]();
   const lap=document.getElementById('laptop'),showLap=S.screen==='demo'&&S.mode!=='phone'&&wide();
   lap.hidden=!showLap;lap.innerHTML=showLap?laptopHTML():'';
   const tabs=document.getElementById('tabs');
   tabs.hidden=S.screen==='lock'||S.screen==='tour';
-  const on=t=>({home:'home',profile:'home',share:'share',demo:'share',history:'history',settings:'settings'})[S.screen]===t?'aria-current="page"':'';
+  const on=t=>({home:'home',profile:'home',share:'share',use:'share',demo:'share',history:'history',settings:'settings'})[S.screen]===t?'aria-current="page"':'';
   tabs.innerHTML=`<button data-act="tab" data-t="home" ${on('home')}>${ICON.cards}Cards</button>
     <button data-act="tab" data-t="share" ${on('share')}>${ICON.share}Share</button>
     <button data-act="tab" data-t="history" ${on('history')}>${ICON.clock}History</button>
@@ -642,7 +649,121 @@ function share(){
   return `<h1 class="big">Share</h1><p class="sub">Your usual choices. You can change them every time.</p>
     ${seg}<p class="grouphead">WHAT TO SHARE</p><div class="group">${secs}</div>${banks}
     <p class="note">You choose every time. Nothing is sent without ${BIO()} or your passcode.</p>
-    <button class="primary wide" data-act="demo">Try it on a website</button>`;
+    <button class="primary wide" data-act="use">Use on a real form</button>
+    <button class="secondary wide" data-act="demo">Practise on a pretend website</button>`;
+}
+
+/* ---------- Use on a real form ----------
+   Copy one detail at a time to paste into any form, or send a PDF / text summary
+   through the share sheet. Only the sections switched on in Share are used. */
+function useBank(p){
+  if(!p.banks.length||S.share.bank==='')return null;
+  return p.banks.find(b=>b.id===S.share.bank)||p.banks[0];
+}
+function useItems(p){
+  const on=s=>S.share.secs.has(s)&&secsFor(p).includes(s),out=[],add=(l,v)=>{if(v)out.push([l,v]);};
+  if(on('about')){add('Full name',[p.first,p.last].filter(Boolean).join(' '));add('First name',p.first);add('Last name',p.last);add('Date of birth',dobText(p.dob));}
+  if(on('address')){add('Address',p.line1);add('Town',p.town);add('Postcode',p.postcode);
+    if(p.line1&&p.postcode)add('Full address',[p.line1,p.town,p.postcode].filter(Boolean).join(', '));}
+  if(on('contact')){add('Email',p.email);add('Mobile',p.phone);}
+  if(on('school'))add('School',p.school);
+  if(on('work')){add('Job title',p.job);add('Employer',p.employer);}
+  if(on('car')){add('Car registration',p.carReg);add('Car make',p.carMake);add('Car model',p.carModel);}
+  if(on('ids')){add('Passport number',p.passNo);add('Passport expiry',p.passExp);add('Driving licence number',p.licNo);add('Licence expiry',p.licExp);}
+  if(on('doctor')){add('GP surgery',p.gp);add('NHS number',p.nhs);add('Hospital number',p.hospNo);}
+  if(on('kin')){add('Emergency contact',p.kinName);add('Their relationship',p.kinRel);add('Their phone',p.kinPhone);}
+  if(on('pets'))add('Pet names',p.pets);
+  const b=useBank(p);
+  if(b){add('Name on account',b.name);add('Sort code',b.sort);add('Account number',b.acc);}
+  return out;
+}
+function useScreen(){
+  const p=prof(),items=useItems(p);
+  const seg=profiles.length>1?`<div class="seg" role="group" aria-label="Whose card">${profiles.map(x=>
+    `<button data-act="pick" data-id="${x.id}" aria-pressed="${x.id===p.id}">${esc(x.first||'New')}</button>`).join('')}</div>`:'';
+  const list=items.length?`<div class="group">${items.map(([l,v],i)=>`<div class="row copyrow"><span><small>${esc(l)}</small><br>${esc(l==='Account number'?mask(v):v)}</span>
+      <button class="secondary copybtn" data-act="copy" data-i="${i}" aria-label="Copy ${esc(l)}">Copy</button></div>`).join('')}</div>`
+    :`<div class="group emptybox">Nothing to use yet.<br>Fill in ${esc(p.first||'this')}’s card, and switch on what to share on the Share tab.</div>`;
+  return `${backBtn('tab-share','Share')}<h1 class="big">Use on a real form</h1>
+    <p class="sub">Tap Copy, then paste it into the form. Or send a summary.</p>
+    ${seg}<p class="msg okline copymsg" role="status">${esc(S.copyMsg)}</p>${list}
+    ${items.length?`<button class="primary wide" data-act="send-pdf">Share as PDF</button>
+    <button class="secondary wide" data-act="send-text">Share as text</button>`:''}
+    <p class="note">Only the details switched on in Share are here${p.banks.length?', with the bank account you picked':''}. Passport and licence are off unless you turn them on. A PDF or text summary isn’t locked, so only send it to people you trust.</p>`;
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true;}
+  catch(e){
+    const a=document.createElement('textarea');a.value=t;a.setAttribute('readonly','');a.style.cssText='position:fixed;opacity:0;top:0';
+    document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy');}catch(e2){}a.remove();return ok;
+  }
+}
+function logUse(p,where,what){
+  const h=S.history[0];
+  if(where==='copied to paste into a form'&&h&&h.where===where&&h.who===(p.first||'New')&&Date.now()-h.t<600000){
+    if(!h.items.split(', ').includes(what))h.items+=', '+what;h.t=Date.now();return;}
+  S.history.unshift({site:'A real form',who:p.first||'New',where,items:what,t:Date.now()});
+}
+/* A plain one-page-or-more A4 PDF, built by hand (Helvetica, no extra library). */
+function makePDF(title,rows,foot){
+  const W=s=>String(s).replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—]/g,'-')
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g,'?').replace(/[\\()]/g,'\\$&');
+  const wrap=(s,n)=>{const out=[];let line='';for(const w of String(s).split(' ')){if(line&&(line+' '+w).length>n){out.push(line);line=w;}else line=line?line+' '+w:w;}
+    out.push(line);return out.flatMap(l=>l.match(new RegExp(`.{1,${n}}`,'g'))||['']);};
+  const pages=[];let ops=[],y=0;
+  const newPage=()=>{if(ops.length)pages.push(ops);ops=[];y=790;
+    ops.push(`BT /F2 20 Tf 50 ${y} Td (${W(title)}) Tj ET`);y-=34;};
+  newPage();
+  for(const [l,v] of rows){
+    const lines=wrap(v,52);
+    if(y-lines.length*15<70)newPage();
+    ops.push(`BT /F2 11 Tf 50 ${y} Td (${W(l)}) Tj ET`);
+    lines.forEach((t,i)=>ops.push(`BT /F1 11 Tf 210 ${y-i*15} Td (${W(t)}) Tj ET`));
+    y-=lines.length*15+7;
+  }
+  pages.push(ops);
+  const objs=['<< /Type /Catalog /Pages 2 0 R >>',null,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>'];
+  const kids=[];
+  pages.forEach((o,i)=>{
+    o.push(`BT /F1 9 Tf 50 40 Td (${W(foot+(pages.length>1?`   Page ${i+1} of ${pages.length}`:''))}) Tj ET`);
+    const s=o.join('\n');
+    objs.push(`<< /Length ${s.length} >>\nstream\n${s}\nendstream`);
+    objs.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${objs.length} 0 R >>`);
+    kids.push(`${objs.length} 0 R`);
+  });
+  objs[1]=`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${kids.length} >>`;
+  let pdf='%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';const off=[];
+  objs.forEach((o,i)=>{off.push(pdf.length);pdf+=`${i+1} 0 obj\n${o}\nendobj\n`;});
+  const x=pdf.length;
+  pdf+=`xref\n0 ${objs.length+1}\n0000000000 65535 f \n`+off.map(n=>String(n).padStart(10,'0')+' 00000 n \n').join('');
+  pdf+=`trailer\n<< /Size ${objs.length+1} /Root 1 0 R >>\nstartxref\n${x}\n%%EOF\n`;
+  return pdf;
+}
+async function sendOut(kind){
+  S.copyMsg='';const p=prof(),items=useItems(p);if(!items.length)return;
+  const who=p.first?`${p.first} ${p.last}`.trim():'My',title=`${who}${p.first?'’s':''} details`;
+  const foot=`Made with Fillkin on ${new Date().toLocaleDateString('en-GB')}. Only share this with people you trust.`;
+  const name=`Fillkin - ${title.replace(/[’']/g,'')} ${stamp()}`;
+  let ok;
+  try{
+    if(kind==='pdf'){
+      const pdf=makePDF(title,items,foot);
+      if(NATIVE)ok=(await nat('shareFile',{name:name+'.pdf',b64:btoa(pdf)})).saved!==false;
+      else{const bytes=Uint8Array.from(pdf,c=>c.charCodeAt(0)),file=new File([bytes],name+'.pdf',{type:'application/pdf'});
+        if(navigator.canShare&&navigator.canShare({files:[file]}))await navigator.share({files:[file],title});
+        else{const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);}
+        ok=true;}
+    }else{
+      const text=`${title}\n\n${items.map(([l,v])=>`${l}: ${v}`).join('\n')}\n\n${foot}`;
+      if(NATIVE)ok=(await nat('shareFile',{name:name+'.txt',data:text,asText:true})).saved!==false;
+      else if(navigator.share){await navigator.share({title,text});ok=true;}
+      else{ok=await copyText(text);S.copyMsg=ok?'Summary copied ✓ Paste it where you need it.':'';}
+    }
+  }catch(e){if(!(e&&(e.name==='AbortError'||e.code==='cancelled')))S.copyMsg='That didn’t work. Please try again.';return render();}
+  if(ok){logUse(p,kind==='pdf'?'sent as a PDF':'sent as text',items.map(i=>i[0]).join(', '));if(!S.copyMsg)S.copyMsg=kind==='pdf'?'PDF shared ✓':'Text shared ✓';}
+  render();
 }
 
 /* ---------- Demo websites ---------- */
@@ -856,8 +977,6 @@ function settings(){
     <p class="grouphead">TEXT SIZE</p>
     <div class="seg" role="group" aria-label="Text size">${SIZES.map(([l,z])=>
       `<button data-act="zoom" data-z="${z}" aria-pressed="${S.zoom===z}">${l}</button>`).join('')}</div>
-    <p class="grouphead">PRICE</p><div class="group">
-      <div class="row"><span>Each person</span><span>£1, one-off</span></div></div>
     <button class="primary wide" data-act="lock">Lock Fillkin now</button>
     <button class="link" data-act="tour-again" style="display:block;margin:16px auto 0">Show the welcome tour again</button>
     <button class="link" data-act="erase" style="display:block;margin:16px auto 0;color:var(--warn)">Erase Fillkin from this ${NATIVE?'iPhone':'device'}</button>
@@ -929,7 +1048,13 @@ document.addEventListener('click',e=>{
   if(a==='tab'){if(!VK)return;S.screen=b.dataset.t;S.editing=null;return render();}
   if(a==='tab-share'){S.screen='share';return render();}
   if(a==='open'){S.current=b.dataset.id;S.editing=null;S.screen='profile';return render();}
-  if(a==='pick'){S.current=b.dataset.id;S.share.bank=null;S.camMsg='';return render();}
+  if(a==='pick'){S.current=b.dataset.id;S.share.bank=null;S.camMsg='';S.copyMsg='';return render();}
+  if(a==='use')return confirmIt(()=>{S.screen='use';S.copyMsg='';render();});
+  if(a==='copy'){const p=prof(),it=useItems(p)[+b.dataset.i];if(!it)return;
+    copyText(it[1]).then(ok=>{S.copyMsg=ok?`Copied ${it[0].toLowerCase()} \u2713 Now paste it into the form.`:'Couldn\u2019t copy. Press and hold the detail to copy it instead.';
+      if(ok)logUse(p,'copied to paste into a form',it[0]);render();});return;}
+  if(a==='send-pdf')return sendOut('pdf');
+  if(a==='send-text')return sendOut('text');
   if(a==='home'){S.screen='home';S.editing=null;return render();}
   if(a==='edit'){S.editing=b.dataset.sec;render();const f=document.querySelector('.edit input');f&&f.focus();return;}
   if(a==='cancel'){S.editing=null;return render();}

@@ -10,8 +10,9 @@ This is the **app prototype** (restored from the 4 October 2026 version):
 - **Cards:** your card plus children's cards, with photo, colour, "% filled" and reminders to check them
 - **On each card:** about you, address, contact, work, car, **passport and driving licence**, doctor (GP, NHS number, **hospital number**), emergency contact, **pets' names** and bank accounts; children's cards have school and passport
 - **Share:** pick which sections to share and which bank account
-- **Enter with Fillkin** demo on pretend websites (shop, school, doctor, car insurance, vet), on this phone, on a laptop by QR code, or by tapping a reader
-- **History** of what was shared, and **Settings** (locked backup, reminders, iPhone/Android style, text size)
+- **Use on a real form:** every detail you've switched on in Share, each with a **Copy** button to paste into any form, plus **Share as PDF** and **Share as text** through the share sheet (Messages, WhatsApp, email, Files)
+- **Practise** Enter with Fillkin on pretend websites (shop, school, doctor, car insurance, vet), on this phone, on a laptop by QR code, or by tapping a reader
+- **History** of what was copied or shared, and **Settings** (locked backup, reminders, iPhone/Android style, text size). Fillkin is free for now (no price shown).
 
 Fillkin starts with one empty card. Everything you type is **saved on the device, encrypted**:
 
@@ -20,7 +21,8 @@ Fillkin starts with one empty card. Everything you type is **saved on the device
 - After 5 wrong passcodes Fillkin makes you wait, and the wait gets longer each time.
 - Fillkin hides your details when it goes into the background, and locks after a minute away.
 - "Forgot passcode?" erases Fillkin on the device so you can start again. Nobody, including Fillkin, can recover the details without the passcode.
-- Locked backup to a new phone isn't built yet.
+- A locked backup (Settings) saves your cards as a file locked with a backup password, to restore on a new phone.
+- A PDF or text summary you share is **not** locked, so it shows a reminder to only send it to people you trust.
 
 ## Run
 
