@@ -59,9 +59,6 @@ jobs:
           xcrun simctl bootstatus "$DEVICE" -b
           BUNDLE=io.github.watersanthony232.fillkin
           xcrun simctl install "$DEVICE" build/Build/Products/Debug-iphonesimulator/App.app
-          # Pretend to be in central London and pre-approve location access.
-          xcrun simctl location "$DEVICE" set 51.5074,-0.1278
-          xcrun simctl privacy "$DEVICE" grant location "$BUNDLE"
           mkdir -p screenshots
           xcrun simctl launch "$DEVICE" "$BUNDLE"
           sleep 8
@@ -69,7 +66,9 @@ jobs:
           sleep 25
           xcrun simctl io "$DEVICE" screenshot screenshots/2-results.png
           # The app must still be running (not crashed).
-          xcrun simctl spawn "$DEVICE" launchctl list | grep -q "$BUNDLE"
+          # (Save the list first: grep -q stopping early would break the pipe under pipefail.)
+          xcrun simctl spawn "$DEVICE" launchctl list > running.txt
+          grep -q "$BUNDLE" running.txt
 
       - uses: actions/upload-artifact@v4
         if: always()
