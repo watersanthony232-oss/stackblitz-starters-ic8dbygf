@@ -220,7 +220,7 @@ input.t{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--l
 .copyrow{align-items:center;gap:10px}
 .copyrow span:first-child{user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;text-align:left}
 .copyrow small{color:var(--muted)}
-.copymsg{position:sticky;top:0;z-index:2;background:var(--bg);min-height:1.4em;margin:6px 0;padding:6px 0}
+.copymsg{position:sticky;top:0;z-index:2;background:var(--bg);min-height:1.4em;margin:6px 0;padding:6px 0;font-size:15px}
 .copybtn{flex:none;min-height:44px;padding:0 16px;margin:0}
 .secondary.wide{width:100%;padding:14px;font-size:17px;border-radius:14px;margin-top:10px;color:var(--ink)}
 /* Enter with Fillkin: always black with white writing (4 Oct 2026) */
@@ -686,7 +686,7 @@ function useScreen(){
     :`<div class="group emptybox">Nothing to use yet.<br>Fill in ${esc(p.first||'this')}’s card, and switch on what to share on the Share tab.</div>`;
   return `${backBtn('tab-share','Share')}<h1 class="big">Use on a real form</h1>
     <p class="sub">Tap Copy, then paste it into the form. Or send a summary.</p>
-    ${seg}<p class="msg okline copymsg" role="status">${esc(S.copyMsg)}</p>${list}
+    ${seg}<p class="${/✓/.test(S.copyMsg)?'okline':'msg'} copymsg" role="status">${esc(S.copyMsg)}</p>${list}
     ${items.length?`<button class="primary wide" data-act="send-pdf">Share as PDF</button>
     <button class="secondary wide" data-act="send-text">Share as text</button>`:''}
     <p class="note">Only the details switched on in Share are here${p.banks.length?', with the bank account you picked':''}. Passport and licence are off unless you turn them on. A PDF or text summary isn’t locked, so only send it to people you trust.</p>`;
