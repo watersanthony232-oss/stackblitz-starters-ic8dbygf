@@ -18,6 +18,7 @@ import { loadSheet, type SheetResult } from './sheet';
 import type { Shop } from './business';
 import { runTour, TOUR_CSV } from './tour';
 import { activeAds } from './ads';
+import zonieAdsLogo from './assets/zonie-ads.jpg';
 
 // Laid out like the Simple Zone website on Android (simplezone.auroraglance.com, 14 Oct 2026).
 
@@ -210,7 +211,7 @@ function offersStrip(all: Shop[]): string {
   const ads = activeAds(all);
   if (!ads.length) return '';
   return `
-    <h2>Today's offers</h2>
+    <div class="offers-head"><img class="zonie-ads-logo" src="${zonieAdsLogo}" alt="Zonie Ads"><h2>Today's offers</h2></div>
     <div class="offers" role="list">
       ${ads
         .map(

@@ -345,6 +345,15 @@ Tony didn't know how Zonie Ads would work, so I proposed a plan. **Tony: "yes go
 
 **Also fixed:** the top bar wrapped onto two lines on small iPhones after the large-text change. Now it's one line at 375 and 430 px wide; it wraps only with very large text, with no overflow.
 
+## Zonie Ads logo added (still switched off) – 14 Oct 2026, 07:10 UTC
+
+- Tony sent the **Zonie Ads logo**: a teal and navy 3D "Z" with an arrow, and "Zonie ads", 1254×1254 JPEG on white.
+- **Original kept unchanged:** `assets/zonie-ads-logo-original.jpg`.
+- **App version:** `src/assets/zonie-ads.jpg`, trimmed and resized to 360×344 (21 KB).
+  - It's shown at 56 px on a white rounded tile next to "Today's offers" (checked light and dark with ads switched on in a test copy).
+- `ZONIE_ADS_ENABLED` is still **false**, so the app shows nothing about ads.
+  - The build still copies the small logo file into `SimpleZone/Web/assets`, but nothing refers to it.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.

@@ -217,6 +217,10 @@ select.chip { padding-right: 10px; max-width: 70%; }
 .cta p { margin: 0 0 14px; color: #dfe6f2; }
 
 /* ---------- Zonie Ads: "Today's offers" (only when switched on) ---------- */
+.offers-head { display: flex; align-items: center; gap: 12px; margin: 22px 0 8px; }
+.offers-head h2 { margin: 0; }
+/* Tony's Zonie Ads logo (white background), on a rounded tile so it also sits well in Dark Mode. */
+.zonie-ads-logo { width: 56px; height: auto; border-radius: 10px; background: #ffffff; flex: none; }
 .offers { display: flex; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 6px; scrollbar-width: none; }
 .offers::-webkit-scrollbar { display: none; }
 .offer { flex: none; width: 70%; max-width: 280px; text-align: left; background: var(--tint); color: var(--tint-ink); border: 0; border-radius: 16px; padding: 12px 14px; }
