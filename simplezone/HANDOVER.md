@@ -394,6 +394,17 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 - **Checked with the app's code:** 2 businesses, 0 skipped. Holistic gets Harefield's location and a working website link.
 - No student discount (there's no sheet column for it).
 
+## Toz Industries added to the sheet – 14 Oct 2026, 07:22 UTC
+
+- Tony: "add toz industries too". Details from Tony's own "Join Simple Zone" form response (7 Oct 2026).
+- **Row 4 of "Simplezone live":**
+  - Toz Industries · Millbrook · Web & app design · sells "apps".
+  - Hours "Mon-Thu 11am-1pm" (form said "Mon-Thurs 11:00 -13:00").
+  - WhatsApp and Phone 07367 414672; no website; Plus: No (form: Free listing).
+- **Left out**, because the sheet has no columns for them: the address the form allowed showing (Mansel Rd West, SO16 9LR) and the student discount ("Yes", no detail).
+- **Checked with the app's code:** 0 skipped; hours read as Mon–Thu 11am–1pm (shows "Open now · closes 1pm" at 11:30 on a Wednesday); Millbrook location.
+- Also confirmed: Holistic's latest form response (8 Oct 10:31) matches row 3 (alternate Saturdays 10:00–16:00; chose Plus).
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
