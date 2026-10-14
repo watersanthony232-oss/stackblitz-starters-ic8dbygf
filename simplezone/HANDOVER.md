@@ -249,6 +249,15 @@ Tony ran the new app: "old logo then new then old at the top in wrong colours".
 - **iPhone status bar:** white text, to show on the navy top bar (Info.plist).
 - Checked in Chromium on small and large phones, light and dark: no errors.
 
+## Android-look app tested and sent – 14 Oct 2026, 06:02 UTC
+
+- **"Simple Zone iOS" run 20** (commit `cd5a5da`, Android look) **passed**: built, and on a small and a large iPhone, light and dark, every screen showed and the app kept running.
+- **Sent to Tony:** "Simple Zone iPhone app (Xcode, Android look) 20261014-0602UTC.zip" (70 KB, made from `cd5a5da`).
+  - icon md5 `91e74b40…`.
+  - Navy CSS present, no tour code.
+  - White status bar set.
+- Nothing uploaded to TestFlight or the App Store.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
