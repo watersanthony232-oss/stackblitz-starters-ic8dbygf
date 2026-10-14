@@ -383,6 +383,17 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
   - Steps: more businesses, privacy page live, support URL, review email, create the app in App Store Connect, age rating (all "None", should be 4+), privacy answers, merge to main, "yes" to TestFlight, screenshots once real businesses are in.
 - **Note:** GitHub shows "Run workflow" only for workflows on the default branch (main). This branch needs merging first; a pull request only on Tony's say-so.
 
+## Holistic Directions added to the sheet – 14 Oct 2026, 07:20 UTC
+
+- Tony: "holistic can go on sheet". The Google Sheets connector was connected, so I wrote **row 3** of "Simplezone live" (Sheet1) directly and read it back to check.
+- **Details** (from the original app's data, from their Join form):
+  - Holistic Directions · Harefield · Wellbeing clinic.
+  - Sells: sports massage, massage, acupuncture, manual lymphatic drainage massage, reflexology, cryopen aesthetics.
+  - Hours "Mon-Fri 8am-8pm, alternate Saturdays 10am-4pm" (shown as typed, so the app never claims "open" on a closed Saturday).
+  - WhatsApp and Phone 07399 275571; website www.holisticdirections.co.uk; **Plus: Yes** (as in the old app; Tony to change it if not).
+- **Checked with the app's code:** 2 businesses, 0 skipped. Holistic gets Harefield's location and a working website link.
+- No student discount (there's no sheet column for it).
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
