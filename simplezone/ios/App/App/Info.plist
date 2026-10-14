@@ -23,7 +23,7 @@
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Simple Zone uses your location only when you tap Near me, to show the nearest shops first. It is not stored or sent anywhere.</string>
+	<string>Simple Zone uses your location only when you tap Near me, to show the nearest businesses first. It is not stored or sent anywhere.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>

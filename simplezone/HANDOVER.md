@@ -24,7 +24,34 @@ Branch: `claude/wonderful-mendel-9hc164`.
 **Installed / removed**
 - Nothing installed or removed. (`npm ci` run for the existing packages.)
 
-**Waiting on Tony**
+## Chunk 2 – 14 Oct 2026, 02:18–02:27 UTC
+
+Tony said "go": look (a) from the pitch video (white top bar, tabs along the bottom).
+
+**Done**
+- Every screen restyled (`src/main.ts`, `src/style.css`): teal `#0F5E63`, orange `#D35F1A`, white space, 20px margin all round.
+  - **Tabs:** Home, Search, Zonie, About. The video's Offers and Alerts tabs are left out: the sheet has no offers, and alerts need a server.
+  - **Home:** tagline, search, area chips (Near me / All areas / areas with businesses / More areas…), category chips, business cards, "Own a business?" box.
+  - **Search:** quick searches, Near me, Open now, Open late, Open Sunday, shopping list. The Student discount filter is gone because the sheet has no student discount column.
+  - **Business page:** teal header, orange Call button (or WhatsApp, or Website), today's hours, WhatsApp, website, "Find in Maps", what they sell, opening times.
+  - **Zonie card wallet:** "Your Zonie cards", an empty 10-stamp card, "Coming soon", "Why people love Zonie" (wording from the video).
+  - **About:** spinning SZ logo, tagline, "We never sell your data.", link to https://auroraglance.com/simplezone/privacy.
+  - **Pricing page:** reached from "Add your business".
+- **Launch:** the SZ logo spins gently while the businesses load (at least 1.2 s), then fades.
+- **Moving parts:** cards fade and slide in softly. Everything stops if "Reduce Motion" is on.
+- **Dark Mode:** follows the iPhone setting.
+- **Dynamic Type:** text follows iPhone Settings › Text Size. The Aa button still makes it bigger on top of that.
+- **VoiceOver:** labels on every button and icon. It moves to each screen's heading, the opening-times table has row headings, and the tabs show which one is selected.
+- **Font:** "th2os modern" is first in the font list, with the iPhone's own font until the files arrive. Thick = 700, Medium = 500, Thin = 300. The app no longer loads Roboto.
+- **Accessibility contrast:** white on `#D35F1A` is only 3.87:1, so orange buttons use large bold text, and small orange text uses `#B9500F` (4.98:1).
+- **Wording:** "shops" changed to "businesses" in the app, the location prompt (Info.plist), privacy.html and support.html.
+- **Settings:** `src/config.ts` holds the privacy link and tagline, plus `ZONIE_ADS_ENABLED = false` and `ZONIE_STAMPS_LIVE = false`.
+- **Checked in Chromium** at iPhone SE (375×667) and iPhone Pro Max (430×932) sizes, light and dark, all 7 screens: no errors. This is not yet the real iPhone Simulator.
+
+**Installed / removed**
+- Nothing installed. Roboto (`@fontsource/roboto`) is no longer used but is still installed. I'll ask before removing it.
+
+**Waiting on Tony** (still open after chunk 2)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
 3. th2os modern font files (Thick, Medium, Thin).
@@ -32,11 +59,8 @@ Branch: `claude/wonderful-mendel-9hc164`.
 5. The pitch video says "First 50 businesses: Plus free for 6 months", but the app says "free for your first year". Which is right?
 
 **Next steps**
-1. Restyle every screen (Home, areas/categories, search, business page, Zonie card wallet, About/Privacy) to match the Android look, in the new colours, with Dark Mode, Dynamic Type and VoiceOver labels.
-2. Switch the app from the built-in list (`src/shops.ts`) to the sheet. Ask Tony before deleting the example businesses.
-3. Change "shops" to "businesses" in all wording.
-4. About/Privacy: link to auroraglance.com/simplezone/privacy and add "We never sell your data".
-5. App icon in all sizes, launch screen, `PrivacyInfo.xcprivacy`, draft App Store privacy answers.
-6. Zonie Ads: switched off.
-7. Simulator screenshots via the "Simple Zone iOS" GitHub check: small and large iPhone, light and dark. Spelling check.
-8. Final code check and tidy-up. Ask before deleting anything.
+1. App icon in all sizes, launch screen check, `PrivacyInfo.xcprivacy`, draft App Store privacy answers (`APP-STORE-PRIVACY.md`).
+2. "Simple Zone iOS" GitHub check: real iPhone Simulator screenshots, small and large iPhone, light and dark.
+3. Spelling check of every word in the app.
+4. Plug in the sheet link and font files when Tony sends them.
+5. Final code check and tidy-up. Ask before deleting: the example businesses in `src/shops.ts` (now only used by tests), `@fontsource/roboto`, `public/privacy.html` (the app links to the website one now), and the README's old wording.
