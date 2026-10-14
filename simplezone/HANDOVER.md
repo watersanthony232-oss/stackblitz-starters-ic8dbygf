@@ -115,7 +115,7 @@ No reply after chunk 2, so I carried on as agreed.
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
 3. th2os modern font files (Thick, Medium, Thin).
 4. How Zonie stamps get added (who stamps, and how the app knows the stamp is real).
-5. The pitch video says "First 50 businesses: Plus free for 6 months", but the app says "free for your first year". Which is right?
+5. ~~Launch offer~~ Answered 02:46 UTC 14 Oct: **first year free** ("First 50 businesses: Plus free for your first year"). The repo copy already says this; the pitch video's "6 months" is out of date. Check the zip copy says the same.
 
 **Next steps**
 1. Check the "Simple Zone iOS" GitHub runs 7 and 8 (screenshots of every screen on small and large iPhones, light and dark) and fix anything that looks wrong.
