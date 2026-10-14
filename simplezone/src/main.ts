@@ -110,7 +110,7 @@ function render() {
         ? joinPage()
         : v.name === 'about'
           ? aboutPage()
-          : v.name === 'zonie'
+          : v.name === 'zonie' && ZONIE_STAMPS_LIVE
             ? zoniePage()
             : homePage();
   app.innerHTML = `
@@ -169,7 +169,7 @@ function homePage(): string {
       ${QUICK.map((q) => `<button class="chip" data-quick="${esc(q)}">${esc(q)}</button>`).join('')}
     </div>
     <button class="listbtn" data-act="list">🛒 My shopping list – find it all in the fewest stops</button>
-    <button class="listbtn" data-go="zonie">Zonie loyalty cards – one card for every business</button>
+    ${ZONIE_STAMPS_LIVE ? `<button class="listbtn" data-go="zonie">Zonie loyalty cards – one card for every business</button>` : ''}
     <div class="chips" role="group" aria-label="Area and filters">
       <select class="chip" data-act="area" aria-label="Area">
         <option value="">All areas</option>
@@ -197,7 +197,7 @@ function homePage(): string {
     <section class="cta">
       <h2>Own a business?</h2>
       <p>Put your business on Simple Zone for free. Customers can find what you sell, see when you're open and get in touch.</p>
-      <button class="btn-teal" data-go="join">Add your business – free</button>
+      <button class="btn-teal" data-go="join">Add your business</button>
     </section>`;
 }
 
@@ -282,7 +282,9 @@ function businessPage(id: string): string {
 }
 
 function zoniePage(): string {
-  const stamps = 0; // No stamps until Zonie stamping is live.
+  // Only reachable when Zonie stamps are live (ZONIE_STAMPS_LIVE). Hidden until then, so the
+  // App Store version has no "coming soon" feature.
+  const stamps = 0;
   const circles = Array.from(
     { length: ZONIE_CARD_SIZE },
     (_, i) => `<span class="stamp ${i < stamps ? 'got' : ''}">${i < stamps ? TICK : ''}</span>`,
@@ -291,17 +293,11 @@ function zoniePage(): string {
     <button class="back" data-go="home">← All businesses</button>
     <h1 tabindex="-1">Your Zonie loyalty cards</h1>
     <p class="meta">One loyalty card for every business on Simple Zone.</p>
-    ${
-      ZONIE_STAMPS_LIVE
-        ? ''
-        : `<div class="zonie" role="img" aria-label="Your Zonie card: ${stamps} of ${ZONIE_CARD_SIZE} stamps">
+    <div class="zonie" role="img" aria-label="Your Zonie card: ${stamps} of ${ZONIE_CARD_SIZE} stamps">
       <div class="zonie-head"><span>Your card</span><small>${stamps} of ${ZONIE_CARD_SIZE}</small></div>
       <div class="stamps" aria-hidden="true">${circles}</div>
       <p>Collect ${ZONIE_CARD_SIZE} stamps for a reward.</p>
     </div>
-    <p class="center"><span class="badge soon">COMING SOON</span></p>
-    <p class="meta center">Zonie stamps aren't switched on yet. Your cards will appear here.</p>`
-    }
     <div class="box">
       <b>Why people love Zonie</b>
       <ul>
@@ -337,23 +333,17 @@ function aboutPage(): string {
 }
 
 function joinPage(): string {
+  // No prices in the app: details and sign-up are on the Simple Zone website.
   return `
     <button class="back" data-go="home">← All businesses</button>
-    <h1 tabindex="-1">Simple pricing</h1>
-    <p class="meta">Cancel any time.</p>
-    <div class="plan">
-      <small>FREE</small><h3>Free listing</h3>
-      <ul><li>Your business page</li><li>Opening times</li><li>Call &amp; directions buttons</li></ul>
+    <h1 tabindex="-1">Add your business</h1>
+    <p>It's free to put your business on Simple Zone. People nearby can find what you sell, see when you're open and get in touch.</p>
+    <div class="box">
+      <b>Your free listing includes</b>
+      <ul><li>Your own business page</li><li>Opening times</li><li>Call, WhatsApp and directions buttons</li></ul>
     </div>
-    <div class="plan plus">
-      <small>PLUS</small><h3>£5 a month</h3>
-      <ul><li>Offers on the home screen</li><li>Zonie loyalty card</li><li>Alerts to local shoppers</li><li>Top of your area's list</li></ul>
-    </div>
-    <div class="launch">Launch offer<b>First 50 businesses: Plus free for your first year</b></div>
-    <p class="meta center">No obligation – Plus won't renew automatically.</p>
-    <p class="big-note">Big stores over 280 m²: £50 a month for year 1</p>
-    <p class="meta center">then £100 a month · Free listing stays free for all</p>
-    <div class="actions center-row"><a class="btn-teal" href="${JOIN_URL}">Add your business – free</a></div>
+    <div class="actions"><a class="btn-teal" href="${JOIN_URL}">Find out more and join</a></div>
+    <p class="meta">Opens the Simple Zone website.</p>
     <div class="box">
       Prefer to talk? Anthony can set it all up for you.
       <div class="actions"><a class="btn-line" href="https://wa.me/${WHATSAPP}">WhatsApp ${WHATSAPP_SHOWN}</a><a class="btn-line" href="mailto:${EMAIL}">Email us</a></div>
@@ -566,8 +556,7 @@ async function startTour() {
     { name: 'home', run: () => go({ name: 'home' }) },
     { name: 'search', run: () => runSearch('coffee') },
     { name: 'business', run: () => first() && go({ name: 'business', id: first()!.id }) },
-    { name: 'zonie', run: () => go({ name: 'zonie' }) },
     { name: 'about', run: () => go({ name: 'about' }) },
-    { name: 'pricing', run: () => go({ name: 'join' }) },
+    { name: 'join', run: () => go({ name: 'join' }) },
   ]);
 }

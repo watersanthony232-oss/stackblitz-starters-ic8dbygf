@@ -98,7 +98,7 @@ jobs:
               sleep 1.5
               xcrun simctl io "$DEVICE" screenshot "screenshots/$size-$look-0-launch.png"
               n=1
-              for screen in home search business zonie about pricing; do
+              for screen in home search business about join; do
                 # Wait for the app to say this screen is showing (up to 60s).
                 for _ in $(seq 1 60); do grep -q "SZ-TOUR $screen" "$LOG" && break; sleep 1; done
                 if ! grep -q "SZ-TOUR $screen" "$LOG"; then echo "::error::$size $look: $screen never showed"; FAILED=1; fi

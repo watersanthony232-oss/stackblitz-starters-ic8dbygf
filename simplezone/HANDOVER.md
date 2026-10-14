@@ -300,6 +300,24 @@ Tony ran the new app: "old logo then new then old at the top in wrong colours".
   - icon md5 `91e74b40…`.
   - The sheet link is in the Web js; no tour code.
 
+## App Store prep: Zonie hidden, prices removed – 14 Oct 2026, 07:01 UTC
+
+Tony asked about Apple testing and releasing. I listed what Apple often rejects; Tony said **yes to hiding Zonie and removing prices**.
+- **Zonie:** the Home button and the Zonie screen only appear when `ZONIE_STAMPS_LIVE = true` (it's false). There is no "Coming soon" anywhere in the app.
+- **"Add your business" page:** no prices, no Plus, no launch offer. It now has:
+  - "It's free to put your business on Simple Zone…" and what the free listing includes;
+  - a "Find out more and join" button that opens simplezone.auroraglance.com/join in Safari;
+  - WhatsApp and email buttons.
+- The Home "Own a business?" button now says "Add your business".
+- **Screenshot tour and GitHub check:** screens are now home, search, business, about, join (Zonie removed).
+
+**Still needed before TestFlight or App Store (Tony)**
+1. More real businesses in the sheet (only Aurora Glance so far; Apple may reject an app that does too little).
+2. Check that https://auroraglance.com/simplezone/privacy is live.
+3. A support page address.
+4. The app record in App Store Connect with bundle ID `com.auroraglance.simplezone`.
+5. A clear "yes, upload to TestFlight". A new upload workflow for SimpleZoneiOS is needed, using the existing App Store Connect key (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `APPLE_TEAM_ID`, `ASC_KEY_P8`).
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.

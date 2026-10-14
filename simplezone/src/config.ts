@@ -12,7 +12,7 @@ export const ZONIE_ADS_ENABLED = false;
 
 /**
  * Zonie stamps: switched off until it's decided how a business adds a stamp
- * (and how the app knows a stamp is real). The wallet shows "Coming soon" until then.
+ * (and how the app knows a stamp is real). Until then Zonie is hidden from the app completely.
  */
 export const ZONIE_STAMPS_LIVE = false;
 
