@@ -136,6 +136,36 @@ Tony emailed the zip to himself at 03:22 UTC. I copied it into a scratch folder 
    - **B)** build the repo's new-style screens into this Xcode project, so the app works without the website.
 2. Fix 1–5 above once Tony says which way to go.
 
+## Chunk 6 – 14 Oct 2026, 03:24–03:27 UTC: option B (the real project runs the app built in)
+
+Tony chose **B**: the real Xcode project (`SimpleZoneiOS`, from the 03:02 zip) now runs the new-style app itself, not the website.
+
+**Done**
+- **Added to the repo:** the zip project at `simplezone/SimpleZoneiOS/`, first exactly as it was (commit `d521d93`), then changed (commit `eed4ba2`).
+- **`WebScreen.swift`:**
+  - Shows the app's own screens from `SimpleZone/Web`, served at `simplezone://app/…`. It no longer loads simplezone.auroraglance.com.
+  - The phone fetches the "Simplezone live" sheet itself, from docs.google.com only.
+  - "Near me" uses the phone's location service. The location stays on the phone.
+  - Calls, WhatsApp, Maps, email and websites open in their own apps.
+  - If iOS clears the screen to save memory, the app loads it again instead of showing a blank page.
+  - The old "You're offline" screen is gone: the app now handles no internet itself, by showing the saved list or a "Can't reach Simple Zone – Try again" message.
+- **`SimpleZone/Web`:** made by `npm run ios:native`, which builds `src/` and copies it in. Run it again after any change to `src/`.
+- **Launch screen:** `LaunchScreen.storyboard` plus the `LaunchLogo` and `LaunchBackground` assets (white, or `#0F1517` in dark mode).
+- **`PrivacyInfo.xcprivacy`:** added to the project.
+- **Info.plist:**
+  - Location prompt now says "businesses".
+  - Camera and photo prompts ("for a free Zonie Ad") removed, because Zonie Ads stay off.
+  - "Uses no encryption" set to NO.
+- **"Simple Zone iOS" check:** now builds and photographs `SimpleZoneiOS`, not the Capacitor copy.
+
+**Not changed (Tony to decide)**
+- `AccentColor` is still `#037F7D` (zip, "new SZ colours 13 Oct"). The screens use the brief's `#0F5E63`. Which is right?
+- The icon is unchanged (Tony's new SZ icon, a single 1024 px image; Xcode makes the other sizes).
+- The **TestFlight workflow still points at the old Capacitor copy.** It has never been run and must not be used until it's pointed at `SimpleZoneiOS`.
+
+**Installed / removed**
+- Nothing installed. Removed from the real project: the camera and photo permission prompts, and loading the live website.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
