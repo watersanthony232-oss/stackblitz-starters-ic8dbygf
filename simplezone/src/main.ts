@@ -454,10 +454,40 @@ function runSearch(q: string) {
   go({ name: 'search' });
 }
 
+/** The iPhone app's bridge (WebScreen.swift). Missing in a normal browser. */
+type AppWindow = Window & {
+  webkit?: { messageHandlers?: { sz?: { postMessage: (m: unknown) => void } } };
+  szLocated?: (lat: number, lon: number) => void;
+  szLocateFailed?: (why: string) => void;
+};
+
 function locate() {
   if (state.near) {
     state.near = undefined;
     render();
+    return;
+  }
+  // In the iPhone app, the phone finds the location (see WebScreen.swift) and calls back here.
+  const bridge = (window as AppWindow).webkit?.messageHandlers?.sz;
+  if (bridge) {
+    state.locating = true;
+    state.locError = '';
+    render();
+    const w = window as AppWindow;
+    w.szLocated = (lat, lon) => {
+      state.locating = false;
+      state.near = { lat, lon };
+      render();
+    };
+    w.szLocateFailed = (why) => {
+      state.locating = false;
+      state.locError =
+        why === 'denied'
+          ? 'Location is off for Simple Zone. Turn it on in Settings › Simple Zone › Location, or pick your area instead.'
+          : 'Couldn’t find your location. Pick your area instead.';
+      render();
+    };
+    bridge.postMessage({ type: 'locate' });
     return;
   }
   if (!navigator.geolocation) {

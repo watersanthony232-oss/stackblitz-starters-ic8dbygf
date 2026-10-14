@@ -34,22 +34,21 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      - name: Build web app (with the screenshot tour) and copy into iOS project
+      - name: Build the app's screens (with the screenshot tour) into the iPhone project
         # VITE_TOUR=1 adds sample businesses and steps through every screen. Only this check builds it;
-        # the real app (and the TestFlight workflow) never includes it.
+        # the Web folder committed to the repo is the normal build.
         env:
           VITE_TOUR: '1'
-        run: npm run ios:sync
+        run: npm run ios:native
 
-      - name: Build iOS app for the simulator
+      - name: Build the iPhone app (SimpleZoneiOS) for the simulator
         run: |
           xcodebuild \
-            -project ios/App/App.xcodeproj \
-            -scheme App \
+            -project SimpleZoneiOS/SimpleZone.xcodeproj \
+            -target SimpleZone \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
-            -derivedDataPath build \
+            SYMROOT="$PWD/build" \
             CODE_SIGNING_ALLOWED=NO \
             build
 
@@ -57,7 +56,7 @@ jobs:
         run: |
           set -euo pipefail
           BUNDLE=com.auroraglance.simplezone
-          APP=build/Build/Products/Debug-iphonesimulator/App.app
+          APP="build/Debug-iphonesimulator/Simple Zone.app"
           mkdir -p screenshots
           # Use the newest iOS runtime, and only iPhone models it supports.
           RUNTIME=$(xcrun simctl list runtimes available -j | jq -c '[.runtimes[] | select(.platform == "iOS")] | last')

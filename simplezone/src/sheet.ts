@@ -183,7 +183,10 @@ export async function loadSheet(url = SHEET_CSV_URL): Promise<SheetResult> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: ctrl.signal, cache: 'no-store', credentials: 'omit' });
+    // In the iPhone app the phone fetches the sheet itself (see AppFiles in WebScreen.swift).
+    const inApp = typeof location !== 'undefined' && location.protocol === 'simplezone:';
+    const from = inApp ? `/live-sheet.csv?u=${encodeURIComponent(url)}` : url;
+    const res = await fetch(from, { signal: ctrl.signal, cache: 'no-store', credentials: 'omit' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const csv = await res.text();
     if (/^\s*</.test(csv)) throw new Error('Not CSV'); // a sign-in or error page, not the sheet

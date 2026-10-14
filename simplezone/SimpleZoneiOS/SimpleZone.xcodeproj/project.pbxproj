@@ -10,12 +10,18 @@
 		5A0000000000000000000011 /* SimpleZoneApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000001 /* SimpleZoneApp.swift */; };
 		5A0000000000000000000012 /* WebScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000002 /* WebScreen.swift */; };
 		5A0000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000003 /* Assets.xcassets */; };
+		5A0000000000000000000014 /* Web in Resources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000005 /* Web */; };
+		5A0000000000000000000015 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000006 /* LaunchScreen.storyboard */; };
+		5A0000000000000000000016 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5A0000000000000000000007 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		5A0000000000000000000001 /* SimpleZoneApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimpleZoneApp.swift; sourceTree = "<group>"; };
 		5A0000000000000000000002 /* WebScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebScreen.swift; sourceTree = "<group>"; };
 		5A0000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5A0000000000000000000005 /* Web */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Web; sourceTree = "<group>"; };
+		5A0000000000000000000006 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		5A0000000000000000000007 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		5A0000000000000000000004 /* Simple Zone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Simple Zone.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -44,6 +50,9 @@
 				5A0000000000000000000001 /* SimpleZoneApp.swift */,
 				5A0000000000000000000002 /* WebScreen.swift */,
 				5A0000000000000000000003 /* Assets.xcassets */,
+				5A0000000000000000000005 /* Web */,
+				5A0000000000000000000006 /* LaunchScreen.storyboard */,
+				5A0000000000000000000007 /* PrivacyInfo.xcprivacy */,
 			);
 			path = SimpleZone;
 			sourceTree = "<group>";
@@ -115,6 +124,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5A0000000000000000000013 /* Assets.xcassets in Resources */,
+				5A0000000000000000000014 /* Web in Resources */,
+				5A0000000000000000000015 /* LaunchScreen.storyboard in Resources */,
+				5A0000000000000000000016 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -189,12 +201,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Simple Zone";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.shopping";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Lets you take a photo for a free Zonie Ad.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shows the nearest shops first when you tap Near me. Your location stays on your phone.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Lets you choose a photo for a free Zonie Ad.";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shows the nearest businesses first when you tap Near me. Your location stays on your phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -219,12 +230,11 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Simple Zone";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.shopping";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Lets you take a photo for a free Zonie Ad.";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shows the nearest shops first when you tap Near me. Your location stays on your phone.";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Lets you choose a photo for a free Zonie Ad.";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Shows the nearest businesses first when you tap Near me. Your location stays on your phone.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

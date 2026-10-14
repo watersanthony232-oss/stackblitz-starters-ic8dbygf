@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "ios": "npm run build && cap sync ios && cap open ios",
-    "ios:sync": "npm run build && cap sync ios"
+    "ios:sync": "npm run build && cap sync ios",
+    "ios:native": "npm run build && rm -rf SimpleZoneiOS/SimpleZone/Web && cp -R dist SimpleZoneiOS/SimpleZone/Web"
   },
   "dependencies": {
     "@capacitor/core": "^8.5.3",

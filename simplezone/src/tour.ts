@@ -8,14 +8,22 @@ Aurora Glance,Southampton,Apps & websites,"apps, websites",,07367 414672,,aurora
 Sample Café,Shirley,Café,"coffee, tea, cake, breakfast",Mon-Fri 8am-5pm; Sat 9-4,,023 8000 0000,,Yes
 Sample Barber,Portswood,Hair,"haircut, beard trim",By appointment,07000 000000,,,No`;
 
+/** In the iPhone app, test builds print these so the check can read them; elsewhere, the console. */
+function log(text: string) {
+  const app = (window as { webkit?: { messageHandlers?: { sz?: { postMessage: (m: unknown) => void } } } }).webkit
+    ?.messageHandlers?.sz;
+  if (app) app.postMessage({ type: 'log', text });
+  else console.log(text);
+}
+
 export type TourStep = { name: string; run: () => void };
 
 export async function runTour(steps: TourStep[], wait = 6000) {
   for (const step of steps) {
     step.run();
     await new Promise((r) => setTimeout(r, 600));
-    console.log(`SZ-TOUR ${step.name}`);
+    log(`SZ-TOUR ${step.name}`);
     await new Promise((r) => setTimeout(r, wait));
   }
-  console.log('SZ-TOUR done');
+  log('SZ-TOUR done');
 }
