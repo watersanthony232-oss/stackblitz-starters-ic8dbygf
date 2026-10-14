@@ -103,7 +103,7 @@ No reply after chunk 2, so I carried on as agreed.
   - Its work (sheet loader, opening hours, new style, launch screen, privacy manifest, App Store privacy draft) can be moved across once I can see the zip copy.
 - **Both copies use the app ID `com.auroraglance.simplezone`,** so installing one replaces the other on the Simulator. That explains the wrong icon.
 - **Repo icon:** teal S and navy Z on white, md5 `082c8ce5ce4dedb99dcbd8d2c841d7c9`. Tony's expected icon-1024.png is md5 `91E74B4069BA2BF9F36B93118B84C8D8`, so they are different files.
-- **"Simple Zone iOS" run 8 passed:** on the iPhone 16e/Pro Max-type simulators, light and dark, every screen showed and the app kept running (28 screenshots). The screenshots couldn't be downloaded from the build machine; they're on the run's GitHub page.
+- **"Simple Zone iOS" run 8 passed:** on a small and a large iPhone simulator (exact models not shown in the part of the log I could read), light and dark, every screen showed and the app kept running (28 screenshots). The screenshots couldn't be downloaded from the build machine; they're on the run's GitHub page.
 
 **Next steps**
 1. Tony uploads the 03:02 zip here (or to Google Drive) so I can see the real project.
