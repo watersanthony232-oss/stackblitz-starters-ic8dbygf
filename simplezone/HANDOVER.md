@@ -75,7 +75,7 @@ No reply after chunk 2, so I carried on as agreed.
 - New files: `ios/App/App/PrivacyInfo.xcprivacy`, `Assets.xcassets/LaunchLogo.imageset`, `Assets.xcassets/LaunchBackground.colorset`, 8 icon sizes, `src/tour.ts`, `APP-STORE-PRIVACY.md`.
 - `Assets.xcassets/Splash.imageset` is no longer used. I'll ask before deleting it.
 
-## Chunk 4 – 14 Oct 2026, 02:36–02:41 UTC
+## Chunk 4 – 14 Oct 2026, 02:36–02:38 UTC
 
 **Simulator check**
 - Run 6 failed before any screenshots: the GitHub Mac (Xcode 26.6, iOS 26.5) has no iPhone SE simulator, and the old SE model can't run iOS 26. The app itself built fine.
