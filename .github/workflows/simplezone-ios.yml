@@ -34,6 +34,11 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Read the live "Simplezone live" sheet like the app does
+        env:
+          LIVE_SHEET: '1'
+        run: npx vitest run src/live-sheet.test.ts
+
       - name: Build the app's screens (with the screenshot tour) into the iPhone project
         # VITE_TOUR=1 adds sample businesses and steps through every screen. Only this check builds it;
         # the Web folder committed to the repo is the normal build.

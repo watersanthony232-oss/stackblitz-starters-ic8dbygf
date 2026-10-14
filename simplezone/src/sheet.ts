@@ -5,11 +5,9 @@ import { findArea } from './areas';
 import { parseHours } from './hours';
 import type { Shop } from './business';
 
-/**
- * The sheet's "Publish to web" CSV link (starts https://docs.google.com/spreadsheets/d/e/2PACX-…).
- * Empty until the published link is confirmed: the app then shows "No businesses yet".
- */
-export const SHEET_CSV_URL = '';
+/** The "Simplezone live" sheet's "Publish to web" CSV link (Sheet1 only), from Tony on 14 Oct 2026. */
+export const SHEET_CSV_URL =
+  'https://docs.google.com/spreadsheets/d/e/2PACX-1vQzxeDwH8yzftgKe1xnO_VZz-iK01cEMKbHRKMbl-PtBg4pMyUiUl4PZHRYop9YXfHeEvB-On4ZaAsb/pub?gid=0&single=true&output=csv';
 
 const CACHE_KEY = 'sz.sheet';
 const TIMEOUT_MS = 15_000;

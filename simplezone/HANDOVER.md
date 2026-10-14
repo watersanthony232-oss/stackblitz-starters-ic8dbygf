@@ -269,11 +269,25 @@ Tony ran the new app: "old logo then new then old at the top in wrong colours".
 - **The Simulator window opened behind Xcode.** That's normal; it's a separate app (Dock icon).
 
 **Next steps**
-1. Tony sends the "Simplezone live" Publish-to-web CSV link. Then set `SHEET_CSV_URL`, re-test with the real businesses, and send a new zip.
+1. ~~Sheet link~~ Done: connected; check the GitHub run that reads the live sheet, then send a new zip.
 2. Tony sends the th2os modern font files (optional; the iPhone's font is used until then).
 3. Tony decides how Zonie stamps get added (the wallet says "Coming soon" until then).
 4. Test on a real iPhone (Tony is looking at a refurbished iPhone SE 2nd gen) before any TestFlight.
 5. TestFlight / App Store only after Tony's clear "yes". A new upload workflow for `SimpleZoneiOS` would be needed first.
+
+## Live sheet connected – 14 Oct 2026, 06:38 UTC
+
+- Tony published "Simplezone live" (Sheet1 only, CSV) and sent the link.
+- **`SHEET_CSV_URL`** in `src/sheet.ts` is now `https://docs.google.com/spreadsheets/d/e/2PACX-1vQzxeDwH8yzftgKe1xnO_VZz-iK01cEMKbHRKMbl-PtBg4pMyUiUl4PZHRYop9YXfHeEvB-On4ZaAsb/pub?gid=0&single=true&output=csv`.
+  - `SimpleZone/Web` rebuilt with it.
+- **Google is blocked from the build machine,** so the sheet was read through Drive instead.
+  - It has 1 row: Aurora Glance, Southampton, Apps & websites, WhatsApp 07367 414672, auroraglance.com, Plus No.
+  - "What they sell" and "Opening hours" are empty.
+- **New GitHub check step:** "Read the live Simplezone live sheet like the app does" (`src/live-sheet.test.ts`, runs only with `LIVE_SHEET=1`).
+  - It downloads the published CSV and reads every row with the app's own code.
+  - It fails if the download isn't CSV, there's no Name column, a row is skipped, or an email address appears.
+  - It lists each business in the log.
+- In the iPhone app the phone downloads the sheet itself (only from docs.google.com) and keeps the last good copy for when there's no internet.
 
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
