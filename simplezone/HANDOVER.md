@@ -110,6 +110,32 @@ No reply after chunk 2, so I carried on as agreed.
 2. Compare it with the repo copy and list what's missing, before changing anything.
 3. Move the agreed work into the real project.
 
+## The real project (03:02 zip) – checked 14 Oct 2026, 03:23 UTC
+
+Tony emailed the zip to himself at 03:22 UTC. I copied it into a scratch folder outside this repo (not added to the repo).
+
+**What it is:** 7 files, a tiny SwiftUI app (`SimpleZoneiOS/SimpleZone.xcodeproj`, scheme/product "Simple Zone", bundle ID `com.auroraglance.simplezone`, iOS 15+, iPhone only).
+- It shows the **live website https://simplezone.auroraglance.com** full screen, plus a "You're offline / Try again" screen, pull-to-refresh and swipe-back.
+- Links to Maps, phone, WhatsApp and email open in their own apps.
+- **So the app's look comes from the website.** The new style, the moving logo, the business list and About/Privacy all have to be done on the website.
+- The website's source code is not in this repo, and the site can't be reached from the build machine.
+
+**Checked:**
+- `icon-1024.png` md5 is `91e74b4069ba2bf9f36b93118b84c8d8`, the same as Tony's `91E74B40…`. It's a teal S and navy Z on white, 1024×1024, a single size (Xcode makes the other sizes).
+
+**Things that clash with Tony's brief:**
+1. **Wording:** the offline text says "find local shops", and the location prompt says "nearest shops". Both should say "businesses".
+2. **Zonie Ads:** the app asks for camera and photo access "for a free Zonie Ad", but Zonie Ads are meant to stay switched off.
+3. **Colour:** teal `#037F7D` ("new SZ colours, 13 Oct") vs the brief's `#0F5E63`.
+4. **App Store readiness:** no `PrivacyInfo.xcprivacy`, and the launch screen is Xcode's automatic one (blank).
+5. **Separation from Fillkin:** Tony's Mac instructions build it on the "Fillkin UI Test" simulator.
+
+**Next steps**
+1. Tony decides:
+   - **A)** keep the app showing the website, and update the website (I'll need its source code); or
+   - **B)** build the repo's new-style screens into this Xcode project, so the app works without the website.
+2. Fix 1–5 above once Tony says which way to go.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
