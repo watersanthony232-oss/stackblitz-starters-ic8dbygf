@@ -147,6 +147,7 @@ function badges(shop: Shop): string {
 }
 
 function openLine(shop: Shop): string {
+  if (!shop.hours) return shop.hoursText ? `<p class="meta">${esc(shop.hoursText)}</p>` : '';
   const open = openState(shop.hours).open;
   return `<p class="open ${open ? '' : 'closed'}">${esc(openLabel(shop.hours))}</p>`;
 }
@@ -205,9 +206,13 @@ function shopPage(id: string): string {
       <h2>What they sell</h2>
       <div class="chips">${shop.sells.map((s) => `<button class="chip" data-quick="${esc(s)}">${esc(s)}</button>`).join('')}</div>
       <h2>Opening times</h2>
-      <table class="hours">${order
-        .map((d) => `<tr class="${d === today ? 'today' : ''}"><td>${DAY_NAMES[d]}</td><td>${esc(formatSpans(shop.hours[d]))}</td></tr>`)
-        .join('')}</table>
+      ${
+        shop.hours
+          ? `<table class="hours">${order
+              .map((d) => `<tr class="${d === today ? 'today' : ''}"><td>${DAY_NAMES[d]}</td><td>${esc(formatSpans(shop.hours![d]))}</td></tr>`)
+              .join('')}</table>`
+          : `<p>${esc(shop.hoursText ?? 'Not listed yet – call or message to check.')}</p>`
+      }
       ${shop.hoursNote ? `<p class="meta">${esc(shop.hoursNote)}</p>` : ''}
     </div>`;
 }

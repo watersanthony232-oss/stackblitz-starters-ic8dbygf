@@ -1,6 +1,6 @@
-// Finding shops: what they sell, where they are, and filters.
+// Finding businesses: what they sell, where they are, and filters.
 
-import { AREAS, miles, type Area } from './areas';
+import { AREAS, miles, sameArea, type Area } from './areas';
 import { opensLate, opensSunday, openState } from './hours';
 import type { Shop } from './shops';
 
@@ -46,10 +46,18 @@ export function matchShop(shop: Shop, what: string): string[] | null {
   return null;
 }
 
+/** Distance in miles, or undefined if we don't know where the business is. */
+export function distanceTo(from: Place, shop: Shop): number | undefined {
+  return shop.lat !== undefined && shop.lon !== undefined ? miles(from, { lat: shop.lat, lon: shop.lon }) : undefined;
+}
+
+/** Filters only pass a business when its hours are known for certain. */
 export function passes(shop: Shop, f: Filters, now = new Date()): boolean {
-  if (f.openNow && !openState(shop.hours, now).open) return false;
-  if (f.openLate && !opensLate(shop.hours, now)) return false;
-  if (f.openSunday && !opensSunday(shop.hours)) return false;
+  const h = shop.hours;
+  if ((f.openNow || f.openLate || f.openSunday) && !h) return false;
+  if (f.openNow && !openState(h!, now).open) return false;
+  if (f.openLate && !opensLate(h!, now)) return false;
+  if (f.openSunday && !opensSunday(h!)) return false;
   if (f.student && !shop.studentDiscount) return false;
   return true;
 }
@@ -66,14 +74,15 @@ export function search(
   const from = near ?? area;
   const out: Result[] = [];
   for (const shop of shops) {
-    if (area && !near && shop.area !== area.name && miles(area, shop) > 3) continue;
+    if (area && !near && !sameArea(shop.area, area) && !((distanceTo(area, shop) ?? Infinity) <= 3)) continue;
     if (!passes(shop, filters, now)) continue;
     const matched = matchShop(shop, what);
     if (!matched) continue;
-    out.push({ shop, matched, distance: from ? miles(from, shop) : undefined });
+    out.push({ shop, matched, distance: from ? distanceTo(from, shop) : undefined });
   }
   out.sort((a, b) => {
     if (area && !near && !!a.shop.plus !== !!b.shop.plus) return a.shop.plus ? -1 : 1;
+    if (from && (a.distance === undefined) !== (b.distance === undefined)) return a.distance === undefined ? 1 : -1;
     if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
     if (!!a.shop.plus !== !!b.shop.plus) return a.shop.plus ? -1 : 1;
     if (!!a.shop.example !== !!b.shop.example) return a.shop.example ? 1 : -1;
@@ -98,11 +107,11 @@ export function planStops(shops: Shop[], items: string[], near?: Place): { stops
       if (stops.some((s) => s.shop === shop)) continue;
       const got = left.filter((i) => has(shop, i));
       if (!got.length) continue;
-      const distance = near ? miles(near, shop) : undefined;
+      const distance = near ? distanceTo(near, shop) : undefined;
       const better =
         !best ||
         got.length > best.items.length ||
-        (got.length === best.items.length && (distance ?? 0) < (best.distance ?? 0));
+        (got.length === best.items.length && (distance ?? Infinity) < (best.distance ?? Infinity));
       if (better) best = { shop, items: got, distance };
     }
     if (!best) break;

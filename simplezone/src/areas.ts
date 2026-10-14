@@ -35,9 +35,22 @@ export const AREAS: Area[] = [
   { name: 'Stockport', lat: 53.41, lon: -2.158, region: 'Greater Manchester' },
 ];
 
+/** Other names businesses use for an area in the sheet. */
+const ALIASES: Record<string, string> = {
+  southampton: 'Southampton City Centre',
+  'city centre': 'Southampton City Centre',
+  'chandlers ford': "Chandler's Ford",
+};
+
 export function findArea(name: string): Area | undefined {
-  const n = name.trim().toLowerCase();
-  return AREAS.find((a) => a.name.toLowerCase() === n);
+  const n = name.trim().toLowerCase().replace(/\s+/g, ' ');
+  const target = (ALIASES[n] ?? n).toLowerCase();
+  return AREAS.find((a) => a.name.toLowerCase() === target);
+}
+
+/** True if the business's area (as typed in the sheet) is this area. */
+export function sameArea(typed: string, area: Area): boolean {
+  return findArea(typed) === area;
 }
 
 /** Straight-line distance in miles. */

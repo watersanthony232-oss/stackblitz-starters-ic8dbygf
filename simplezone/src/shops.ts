@@ -8,13 +8,17 @@ export type Shop = {
   name: string;
   category: string;
   area: string;
-  lat: number;
-  lon: number;
+  /** From the area's centre point; missing if the area isn't one we know. */
+  lat?: number;
+  lon?: number;
   /** Only shown when the business said yes to showing its address. */
   address?: string;
   about?: string;
   sells: string[];
-  hours: Week;
+  /** Missing if the opening hours couldn't be read for certain. */
+  hours?: Week;
+  /** The opening hours exactly as the business typed them. */
+  hoursText?: string;
   hoursNote?: string;
   phone?: string;
   whatsapp?: string;
