@@ -362,6 +362,27 @@ Tony didn't know how Zonie Ads would work, so I proposed a plan. **Tony: "yes go
 - **Business-page "Offer:" box:** navy with a teal "Offer:" label and teal edge.
 - Checked light and dark in a test copy with ads on. `ZONIE_ADS_ENABLED` is still false.
 
+## Getting ready to publish – 14 Oct 2026, 07:13 UTC
+
+Tony: "get it ready to publish". I prepared everything that doesn't upload. **Nothing has been sent to Apple.**
+- **Shared Xcode scheme** `SimpleZone.xcodeproj/xcshareddata/xcschemes/SimpleZone.xcscheme`.
+- **App Store words** in `fastlane/metadata` (all within Apple's limits; no "shops" wording):
+  - Name "Simple Zone"; subtitle "Find local businesses nearby".
+  - Promotional text, description, keywords.
+  - Categories: Shopping, Lifestyle.
+  - Copyright "2026 Anthony Waters".
+  - Review notes; review phone +44 7367 414672.
+  - Still TODO: **support URL** and **review email**.
+- **`.github/workflows/simplezone-testflight.yml`:** run by hand only, and you must type "yes". It:
+  - runs the tests and the live-sheet check;
+  - makes the normal build and refuses one with tour code;
+  - archives, signs with the existing App Store Connect key, and uploads to TestFlight.
+  - It never submits for review.
+- **`.github/workflows/simplezone-store-listing.yml`:** run by hand only, with "yes". It refuses to run while anything says TODO or there are no screenshots. It uses fastlane deliver and never submits.
+- **`PUBLISH-CHECKLIST.md`:** what's done and Tony's steps.
+  - Steps: more businesses, privacy page live, support URL, review email, create the app in App Store Connect, age rating (all "None", should be 4+), privacy answers, merge to main, "yes" to TestFlight, screenshots once real businesses are in.
+- **Note:** GitHub shows "Run workflow" only for workflows on the default branch (main). This branch needs merging first; a pull request only on Tony's say-so.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.

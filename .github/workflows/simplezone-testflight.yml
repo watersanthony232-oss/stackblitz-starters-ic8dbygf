@@ -1,0 +1,135 @@
+name: Simple Zone TestFlight
+
+# Uploads a build of SimpleZoneiOS to TestFlight. Only run by hand, and only after Tony says "yes":
+# Actions tab -> Simple Zone TestFlight -> Run workflow -> type yes.
+# It never submits for App Review; that stays a person's click in App Store Connect.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type yes to upload a new build to TestFlight'
+        required: true
+
+jobs:
+  upload:
+    if: ${{ github.event.inputs.confirm == 'yes' }}
+    runs-on: macos-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: simplezone
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check secrets are set
+        run: |
+          missing=0
+          for name in ASC_KEY_ID ASC_ISSUER_ID APPLE_TEAM_ID ASC_KEY_P8; do
+            if [ -z "${!name}" ]; then echo "::error::Missing repository secret $name"; missing=1; fi
+          done
+          exit $missing
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: simplezone/package-lock.json
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install
+        run: npm ci
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Check the live sheet reads cleanly
+        env:
+          LIVE_SHEET: '1'
+        run: npx vitest run src/live-sheet.test.ts
+
+      - name: Build the app's screens into the iPhone project (normal build, no tour)
+        run: |
+          npm run ios:native
+          if grep -q "SZ-TOUR" SimpleZoneiOS/SimpleZone/Web/assets/*.js; then echo "::error::Test tour found in the build"; exit 1; fi
+
+      - name: Write App Store Connect API key
+        run: |
+          mkdir -p "$RUNNER_TEMP/asc"
+          key="$RUNNER_TEMP/asc/AuthKey.p8"
+          body=$(printf '%s' "$ASC_KEY_P8" | tr -d '\r' \
+            | sed -e 's/-----BEGIN [A-Z ]*-----//g' -e 's/-----END [A-Z ]*-----//g' \
+            | tr -d ' \t\n')
+          {
+            echo '-----BEGIN PRIVATE KEY-----'
+            printf '%s' "$body" | fold -w 64
+            echo
+            echo '-----END PRIVATE KEY-----'
+          } > "$key"
+          if ! openssl pkey -in "$key" -noout 2>/dev/null; then
+            echo "::error::The ASC_KEY_P8 secret is not a valid .p8 key."
+            exit 1
+          fi
+          echo "ASC_KEY_PATH=$key" >> "$GITHUB_ENV"
+
+      # Archive unsigned; the export step signs for App Store distribution (no registered devices needed).
+      - name: Archive
+        run: |
+          xcodebuild \
+            -project SimpleZoneiOS/SimpleZone.xcodeproj \
+            -scheme SimpleZone \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/SimpleZone.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGNING_ALLOWED=NO \
+            CURRENT_PROJECT_VERSION=${{ github.run_number }} \
+            archive
+
+      - name: Sign for App Store and upload to TestFlight
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/SimpleZone.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          echo "Uploaded Simple Zone build ${{ github.run_number }}. It appears in App Store Connect -> TestFlight after processing (about 15 min)."
+
+      - name: Show Apple's detailed export log (on failure)
+        if: failure()
+        run: |
+          for d in "${TMPDIR:-/tmp}"/*.xcdistributionlogs; do
+            [ -d "$d" ] || continue
+            for f in "$d"/IDEDistribution.critical.log "$d"/IDEDistribution.standard.log; do
+              [ -f "$f" ] || continue
+              echo "===== $f"
+              grep -iE "error|fail|denied|not found|could not|unable|bundle|team|agreement|status code|response" "$f" | tail -n 80
+            done
+          done
+
+      - name: Remove API key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/asc"

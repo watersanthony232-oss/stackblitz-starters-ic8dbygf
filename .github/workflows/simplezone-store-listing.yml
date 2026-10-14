@@ -1,0 +1,88 @@
+name: Simple Zone store listing
+
+# Sends the App Store words (simplezone/fastlane/metadata) and screenshots (simplezone/fastlane/screenshots)
+# to App Store Connect for version 1.0. Only run by hand, after Tony says "yes": type yes when asked.
+# It never uploads a build and never submits for review: that stays a person's click.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type yes to send the Simple Zone listing to App Store Connect'
+        required: true
+
+jobs:
+  listing:
+    if: ${{ github.event.inputs.confirm == 'yes' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: simplezone
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check nothing is still to be filled in
+        run: |
+          if grep -rl "TODO" fastlane/metadata; then echo "::error::Fill in the TODO items above first"; exit 1; fi
+          n=$(ls fastlane/screenshots/en-GB 2>/dev/null | wc -l)
+          if [ "$n" -eq 0 ]; then echo "::error::No screenshots in fastlane/screenshots/en-GB yet"; exit 1; fi
+
+      - name: Check secrets are set
+        run: |
+          missing=0
+          for name in ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            if [ -z "${!name}" ]; then echo "::error::Missing repository secret $name"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Check the listing fits Apple's limits
+        run: |
+          check() { n=$(tr -d '\n' < "$1" | wc -m); if [ "$n" -gt "$2" ]; then echo "::error::$1 is $n characters (limit $2)"; exit 1; fi; echo "$1: $n / $2"; }
+          m=fastlane/metadata/en-GB
+          check $m/name.txt 30; check $m/subtitle.txt 30; check $m/promotional_text.txt 170
+          check $m/description.txt 4000; check $m/keywords.txt 100
+          check fastlane/metadata/review_information/notes.txt 4000
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Install fastlane
+        run: gem install fastlane --no-document
+
+      - name: Write App Store Connect API key
+        run: |
+          mkdir -p "$RUNNER_TEMP/asc"
+          body=$(printf '%s' "$ASC_KEY_P8" | tr -d '\r' \
+            | sed -e 's/-----BEGIN [A-Z ]*-----//g' -e 's/-----END [A-Z ]*-----//g' \
+            | tr -d ' \t\n')
+          pem=$(printf -- '-----BEGIN PRIVATE KEY-----\n%s\n-----END PRIVATE KEY-----\n' "$(printf '%s' "$body" | fold -w 64)")
+          jq -n --arg id "$ASC_KEY_ID" --arg iss "$ASC_ISSUER_ID" --arg key "$pem" \
+            '{key_id:$id, issuer_id:$iss, key:$key, duration:1200, in_house:false}' > "$RUNNER_TEMP/asc/key.json"
+          echo "ASC_KEY_JSON=$RUNNER_TEMP/asc/key.json" >> "$GITHUB_ENV"
+
+      - name: Send words and screenshots to App Store Connect
+        run: |
+          fastlane deliver \
+            --api_key_path "$ASC_KEY_JSON" \
+            --app_identifier com.auroraglance.simplezone \
+            --platform ios \
+            --app_version 1.0 \
+            --metadata_path ./fastlane/metadata \
+            --screenshots_path ./fastlane/screenshots \
+            --overwrite_screenshots true \
+            --skip_binary_upload true \
+            --skip_app_version_update true \
+            --submit_for_review false \
+            --automatic_release false \
+            --run_precheck_before_submit false \
+            --force true
+          echo "Done. Check App Store Connect -> Simple Zone -> 1.0 Prepare for Submission."
+
+      - name: Remove API key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/asc"

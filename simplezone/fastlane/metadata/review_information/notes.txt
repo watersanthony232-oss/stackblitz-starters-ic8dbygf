@@ -1,0 +1,11 @@
+Simple Zone has no account and no sign-in. It shows local businesses from a published list (a public Google Sheet that we manage), so no login or demo account is needed.
+
+To try it:
+1. Open the app. The list of businesses appears on the home screen.
+2. Type something in "What do you need?" and tap Search, or tap a quick search such as "coffee".
+3. Tap a business to see its page. Call, WhatsApp, Directions and Visit website open the Phone, WhatsApp, Maps and Safari apps.
+4. Tap "Near me – nearest first" to sort by distance. Location is only used on the device for this, and is never stored or sent anywhere.
+5. "My shopping list" finds everything on the list in the fewest stops.
+6. "About" (top right) has the privacy policy link. "Add your business" explains free listings and opens our website.
+
+The app collects no data, has no adverts, no analytics and no third-party SDKs. With no internet, it shows the last list it saved.
