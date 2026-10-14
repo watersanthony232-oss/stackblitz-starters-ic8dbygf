@@ -448,3 +448,14 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 - Tony: "didn't see a qr". His phone's PDF viewer leaves out SVG drawings.
 - **Fix:** the QR code is now a plain picture (1400 px), and the logo is a see-through PNG, which removes the faint edge.
 - Each PDF now has just 2 pictures plus text. The QR codes were checked by scanning the PDF pages themselves, and all 3 open https://simplezone.auroraglance.com.
+
+## Tony confirmed the app on the Mac – 14 Oct 2026, 07:52 UTC (08:52 UK)
+
+- Sent a fresh zip, "Simple Zone iPhone app 20261014-0848UK.zip" (same code as the run 30 that passed). Tony ran it in the Xcode Simulator and confirmed it looks right.
+- The 03:02 zip in Tony's Downloads is out of date. Don't use it.
+
+**Next steps (publishing, Tony)**
+1. Add more businesses to the sheet.
+2. Support page address and review email (the TODOs in `fastlane/metadata`).
+3. Create the app in App Store Connect (com.auroraglance.simplezone), then the age rating and privacy answers.
+4. Say yes to a pull request to main, then "yes, upload to TestFlight".
