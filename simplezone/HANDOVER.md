@@ -5,7 +5,7 @@ Branch: `claude/wonderful-mendel-9hc164`.
 
 ---
 
-## Chunk 1 – 14 Oct 2026, 02:13–02:20 UTC
+## Chunk 1 – 14 Oct 2026, 02:13–02:17 UTC
 
 **Found**
 - There was no HANDOVER file and no style notes, so "new style" = Tony's brief: teal `#0F5E63`, orange `#D35F1A`, th2os modern font, calm and clean, Dark Mode, Dynamic Type, VoiceOver.
