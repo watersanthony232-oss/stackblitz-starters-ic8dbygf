@@ -220,6 +220,35 @@ Tony ran the new app: "old logo then new then old at the top in wrong colours".
   - The launch screen shows the same SZ logo on a white tile.
   - If Tony sees an orange pin there, it's iOS showing a saved picture of the old app's launch screen. Fix: Simulator › Device › Restart, then run again.
 
+## Restyled to match the Android look – 14 Oct 2026, 05:45 UTC
+
+- **Tony's view:** my design (white top bar, tabs along the bottom) was "the old style and colours". He chose "Like the Android app" and emailed 3 Android screenshots ("Sz", 05:38 UTC).
+- **What the screenshots show:** the Simple Zone **website** in Chrome on Android (simplezone.auroraglance.com).
+- **Colours measured from the screenshots:**
+  - Top bar: navy `#11244E`, white text.
+  - Buttons: teal `#377D7B`.
+  - Page: `#F6F7FB`. Cards: white with a `#889B9C` border. Text: `#293436`.
+  - Tagline: green `#3D7D41`, italic.
+  - "Closed": red `#A53328`.
+  - Light teal boxes: `#E6F6F6` with `#265A58` text.
+  - Blue badge: `#375CA3`.
+- **Layout now, like the Android screens:**
+  - Navy top bar: SZ logo tile, "Simple Zone", "About" and "Add your business" on the right.
+  - Tagline, search box, full-width teal Search and "📍 Near me – nearest first" buttons, the "Aa Normal text" button.
+  - "Tap to find the nearest:" chips, then the shopping list button.
+  - Area, category and "Open now / late / Sunday" filters.
+  - Count line, business cards, a navy "Own a business?" box.
+  - Other screens open with a "← All businesses" link.
+  - The bottom tabs are gone (Android has none). **Zonie** is a button on Home, under the shopping list.
+- **Kept from the brief:**
+  - "businesses" not "shops"; no "Example" businesses or "Preview" note; no offers or student discount (the sheet has neither).
+  - Data from the sheet only.
+  - Dark Mode (a navy-based dark version), bigger text, VoiceOver labels, the spinning logo on launch and About, Reduce Motion.
+- **Not copied:** the light teal "OFFER" badge colour `#49A1A2`. White text on it is only 3.04:1, so the PLUS badge uses the button teal `#377D7B` (4.79:1).
+- **Orange `#D35F1A` is no longer used.** The Android look has no orange.
+- **iPhone status bar:** white text, to show on the navy top bar (Info.plist).
+- Checked in Chromium on small and large phones, light and dark: no errors.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.

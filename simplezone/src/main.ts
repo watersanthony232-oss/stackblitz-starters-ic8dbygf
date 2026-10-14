@@ -11,44 +11,29 @@ import {
   ZONIE_CARD_SIZE,
   ZONIE_STAMPS_LIVE,
 } from './config';
-import { DAY_NAMES, formatSpans, formatTime, openLabel, openState, ukNow } from './hours';
+import { DAY_NAMES, formatSpans, openLabel, openState, ukNow } from './hours';
 import { planStops, search, splitArea, type Filters, type Place } from './search';
 import { loadSheet, type SheetResult } from './sheet';
 import type { Shop } from './business';
 import { runTour, TOUR_CSV } from './tour';
 
-const QUICK = ['coffee', 'haircut', 'massage', 'nails', 'phone charger', 'bread', 'takeaway', 'cider'];
+// Laid out like the Simple Zone website on Android (simplezone.auroraglance.com, 14 Oct 2026).
+
+const QUICK = ['coffee', 'cider', 'massage', 'nails', 'haircut', 'phone charger', 'bread', 'takeaway'];
 const SIZES = [
   { z: 1, label: 'Normal text' },
   { z: 1.2, label: 'Bigger text' },
   { z: 1.4, label: 'Biggest text' },
 ];
 
-// ---------- Icons (decorative: VoiceOver reads the button text instead) ----------
-
-const svg = (d: string, extra = '') =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${d}</svg>`;
-const ICON = {
-  home: svg('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/>'),
-  search: svg('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
-  card: svg('<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 10h18"/>'),
-  info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5h.01"/>'),
-  back: svg('<path d="M15 5l-7 7 7 7"/>'),
-  phone: svg('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>'),
-  map: svg('<path d="M12 21s-6.5-5.8-6.5-11a6.5 6.5 0 0 1 13 0c0 5.2-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>'),
-  clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
-  chat: svg('<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/>'),
-  check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
-  web: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>'),
-};
 /** The SZ mark (also the app icon). Each copy needs its own ids. */
 const mark = (id: string, cls = 'logo-spin') =>
   `<svg class="${cls}" viewBox="228 203 1040 610" role="img" aria-label="Simple Zone logo"><defs><path id="szs-${id}" d="M486 213 L893 213 L780 345 L486 345 A50 50 0 0 0 486 445 L690 445 A179 179 0 0 1 690 803 L238 803 L370 673 L690 673 A49 49 0 0 0 690 575 L486 575 A181 181 0 0 1 486 213 Z"/><mask id="szgap-${id}" maskUnits="userSpaceOnUse" x="228" y="203" width="1040" height="610"><rect x="228" y="203" width="1040" height="610" fill="#fff"/><use href="#szs-${id}" fill="#000" stroke="#000" stroke-width="22" stroke-linejoin="round"/></mask></defs><path fill="#0A2551" mask="url(#szgap-${id})" d="M893 213 L1258 213 L1040 673 L1258 673 L1148 803 L765 803 L880 673 L1035 345 L780 345 Z"/><use href="#szs-${id}" fill="#04A4A2"/></svg>`;
+const TICK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>`;
 
 // ---------- State ----------
 
-type Tab = 'home' | 'search' | 'zonie' | 'about';
-type View = { name: Tab } | { name: 'business'; id: string; from: Tab } | { name: 'join'; from: Tab };
+type View = { name: 'home' } | { name: 'business'; id: string } | { name: 'join' } | { name: 'about' } | { name: 'zonie' };
 
 const state = {
   view: { name: 'home' } as View,
@@ -64,7 +49,7 @@ const state = {
   size: Math.min(Number(load('sz.size') ?? 0) || 0, SIZES.length - 1),
   list: load('sz.list') ?? '',
   showList: false,
-  scroll: {} as Record<string, number>,
+  scrollHome: 0,
 };
 
 function load(key: string): string | null {
@@ -89,7 +74,6 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 const app = document.getElementById('app')!;
 const shops = (): Shop[] => state.data?.shops ?? [];
 const area = (): Area | undefined => (state.areaName ? findArea(state.areaName) : undefined);
-const tabOf = (v: View): Tab => ('from' in v ? v.from : v.name);
 
 // ---------- Text size: follows iPhone Settings › Display › Text Size, plus the Aa button ----------
 
@@ -106,15 +90,14 @@ function applyTextSize() {
 // ---------- Navigation ----------
 
 function go(view: View) {
-  state.scroll[viewKey(state.view)] = window.scrollY;
+  if (state.view.name === 'home') state.scrollHome = window.scrollY;
   state.view = view;
   state.showList = false;
   render();
-  window.scrollTo(0, state.scroll[viewKey(view)] ?? 0);
+  window.scrollTo(0, view.name === 'home' ? state.scrollHome : 0);
   // Move VoiceOver to the new screen's heading.
   document.querySelector<HTMLElement>('main h1')?.focus({ preventScroll: true });
 }
-const viewKey = (v: View) => ('id' in v ? `business:${v.id}` : v.name);
 
 // ---------- Rendering ----------
 
@@ -125,39 +108,27 @@ function render() {
       ? businessPage(v.id)
       : v.name === 'join'
         ? joinPage()
-        : v.name === 'search'
-          ? searchPage()
+        : v.name === 'about'
+          ? aboutPage()
           : v.name === 'zonie'
             ? zoniePage()
-            : v.name === 'about'
-              ? aboutPage()
-              : homePage();
-  const tab = tabOf(v);
-  const tabBtn = (t: Tab, icon: string, label: string) =>
-    `<button data-tab="${t}" ${tab === t ? 'aria-current="page"' : ''}>${icon}<span>${label}</span></button>`;
+            : homePage();
   app.innerHTML = `
     <header class="top">
-      <button class="wordmark" data-tab="home" aria-label="Simple Zone, home"><span class="hdr-logo" aria-hidden="true">${mark('top', 'hdr-mark')}</span><span>Simple Zone</span></button>
-      <button class="sizebtn" data-act="size" aria-label="Text size: ${SIZES[state.size].label}. Tap to change.">Aa</button>
+      <button class="brand" data-go="home" aria-label="Simple Zone, home"><span class="mark" aria-hidden="true">${mark('top', 'hdr-mark')}</span><b>Simple Zone</b></button>
+      <nav class="toplinks" aria-label="Menu"><button data-go="about">About</button><button data-go="join">Add your business</button></nav>
     </header>
     <main>${body}<p class="foot">Simple Zone · by Aurora Glance</p></main>
-    <nav class="tabs" aria-label="Main">
-      ${tabBtn('home', ICON.home, 'Home')}
-      ${tabBtn('search', ICON.search, 'Search')}
-      ${tabBtn('zonie', ICON.card, 'Zonie')}
-      ${tabBtn('about', ICON.info, 'About')}
-    </nav>
     ${state.showList ? listSheet() : ''}`;
 }
 
-/** Status of the business list: loading, no internet, saved copy. */
+/** Status of the business list: loading, or no internet with a saved copy. */
 function dataBanner(): string {
   const d = state.data;
-  if (state.loading && !d) return `<p class="banner" role="status">Loading businesses…</p>`;
-  if (!d) return '';
-  if (d.source === 'saved' && d.savedAt && d.error === 'offline') {
+  if (state.loading && !d) return `<p class="note" role="status">Loading businesses…</p>`;
+  if (d?.source === 'saved' && d.savedAt && d.error === 'offline') {
     const when = new Date(d.savedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
-    return `<p class="banner" role="status">No internet right now. Showing the list saved on ${esc(when)}.</p>`;
+    return `<p class="note" role="status">No internet right now. Showing the list saved on ${esc(when)}.</p>`;
   }
   return '';
 }
@@ -166,115 +137,97 @@ function emptyData(): string {
   const d = state.data;
   if (!d || d.shops.length) return '';
   if (d.error === 'offline')
-    return `<div class="box center" role="status"><h3>Can't reach Simple Zone</h3><p>Check your internet connection and try again.</p><p><button class="btn line" data-act="reload">Try again</button></p></div>`;
-  return `<div class="box center" role="status"><h3>No businesses yet</h3><p>Local businesses are joining now. Check back soon.</p></div>`;
+    return `<div class="box" role="status"><b>Can't reach Simple Zone.</b><br>Check your internet connection and try again.<div class="actions"><button class="btn-line" data-act="reload">Try again</button></div></div>`;
+  return `<div class="box" role="status"><b>No businesses yet.</b><br>Local businesses are joining now. Check back soon.</div>`;
 }
 
 function homePage(): string {
   const all = shops();
-  const a = area();
-  const inCategory = state.category ? all.filter((s) => s.category === state.category) : all;
-  const inArea = search(inCategory, { what: '', area: a, near: state.near });
-  const areasWithBusinesses = AREAS.filter((x) => all.some((s) => findArea(s.area) === x));
+  const split = splitArea(state.query);
+  const a = area() ?? split.area;
+  const pool = state.category ? all.filter((s) => s.category === state.category) : all;
+  const results = search(pool, { what: split.what, area: a, near: state.near, filters: state.filters });
   const categories = [...new Set(all.map((s) => s.category).filter(Boolean))].sort((x, y) => x.localeCompare(y));
-  const where = state.near ? 'near you' : a ? `in ${a.name}` : '';
+  const where = state.near ? 'near you' : a ? `in ${a.name}` : 'in all areas';
+  const count = split.what
+    ? `${plural(results.length, 'business sells', 'businesses sell')} “${esc(split.what)}”${state.near || a ? ', nearest first' : ''}`
+    : `${plural(results.length, 'business', 'businesses')} ${where}`;
+  const f = state.filters;
   return `
-    <h1 class="sr-only" tabindex="-1">Simple Zone home</h1>
+    <h1 class="sr-only" tabindex="-1">Simple Zone</h1>
     <p class="tagline">${esc(TAGLINE)}</p>
-    <form class="searchbox" data-act="search" role="search" style="margin-top:16px">
-      ${ICON.search}
-      <input name="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="Try ‘coffee’ or ‘nails’" aria-label="Search businesses">
+    <form class="searchbox" data-act="search" role="search">
+      <input name="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="What do you need?" value="${esc(state.query)}" aria-label="What do you need?">
+      <button class="btn-teal" type="submit">Search</button>
     </form>
-    ${dataBanner()}
-    <h2>Areas</h2>
-    <div class="chips scroll" role="group" aria-label="Areas">
-      <button class="chip near" data-act="near" aria-pressed="${!!state.near}">${state.locating ? 'Finding you…' : 'Near me'}</button>
-      <button class="chip" data-area="" aria-pressed="${!state.areaName && !state.near}">All areas</button>
-      ${areasWithBusinesses.map((x) => `<button class="chip" data-area="${esc(x.name)}" aria-pressed="${x.name === state.areaName && !state.near}">${esc(x.name)}</button>`).join('')}
-      <select class="chip" data-act="area" aria-label="More areas">
-        <option value="">More areas…</option>
+    <button class="btn-teal wide" data-act="near" aria-pressed="${!!state.near}">${
+      state.locating ? 'Finding you…' : state.near ? 'Nearest first ✓ (tap to turn off)' : '📍 Near me – nearest first'
+    }</button>
+    ${state.locError ? `<p class="msg err" role="alert">${esc(state.locError)}</p>` : ''}
+    <button class="sizebtn" data-act="size" aria-label="Text size: ${SIZES[state.size].label}. Tap to change.">Aa ${SIZES[state.size].label}</button>
+    <div class="chips" role="group" aria-label="Quick searches"><span class="label">Tap to find the nearest:</span>
+      ${QUICK.map((q) => `<button class="chip" data-quick="${esc(q)}">${esc(q)}</button>`).join('')}
+    </div>
+    <button class="listbtn" data-act="list">🛒 My shopping list – find it all in the fewest stops</button>
+    <button class="listbtn" data-go="zonie">Zonie loyalty cards – one card for every business</button>
+    <div class="chips" role="group" aria-label="Area and filters">
+      <select class="chip" data-act="area" aria-label="Area">
+        <option value="">All areas</option>
         ${AREAS.map((x) => `<option ${x.name === state.areaName ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}
       </select>
+      ${
+        categories.length
+          ? `<select class="chip" data-act="category" aria-label="Category">
+        <option value="">All categories</option>
+        ${categories.map((c) => `<option ${c === state.category ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+      </select>`
+          : ''
+      }
+      ${filterChip('openNow', 'Open now', f.openNow)}
+      ${filterChip('openLate', 'Open late', f.openLate)}
+      ${filterChip('openSunday', 'Open Sunday', f.openSunday)}
     </div>
-    ${state.locError ? `<p class="meta closed" role="alert">${esc(state.locError)}</p>` : ''}
-    ${
-      categories.length
-        ? `<h2>Categories</h2>
-    <div class="chips" role="group" aria-label="Categories">
-      <button class="chip" data-cat="" aria-pressed="${!state.category}">All</button>
-      ${categories.map((c) => `<button class="chip" data-cat="${esc(c)}" aria-pressed="${c === state.category}">${esc(c)}</button>`).join('')}
-    </div>`
-        : ''
-    }
+    ${dataBanner()}
     ${
       all.length
-        ? `<h2>${esc(state.category || 'Businesses')} ${esc(where)}</h2>
-    ${inArea.map((r, i) => businessCard(r.shop, i, [], r.distance)).join('') || `<div class="box">No businesses here yet. Try “All areas”.</div>`}`
+        ? `<p class="count" role="status">${count}</p>
+    ${results.map((r, i) => businessCard(r.shop, i, r.matched, r.distance)).join('') || noResults()}`
         : emptyData()
     }
     <section class="cta">
-      <h3>Own a business?</h3>
-      <p>Put your business on Simple Zone for free. People nearby can find what you sell, see when you're open and get in touch.</p>
-      <button class="btn primary" data-act="join">Add your business – free</button>
+      <h2>Own a business?</h2>
+      <p>Put your business on Simple Zone for free. Customers can find what you sell, see when you're open and get in touch.</p>
+      <button class="btn-teal" data-go="join">Add your business – free</button>
     </section>`;
 }
 
-function filterChip(key: keyof Filters, label: string) {
-  return `<button class="chip" data-filter="${key}" aria-pressed="${!!state.filters[key]}">${label}</button>`;
+function filterChip(key: keyof Filters, label: string, on?: boolean) {
+  return `<button class="chip ${on ? 'on' : ''}" data-filter="${key}" aria-pressed="${!!on}">${label}</button>`;
 }
 
-function searchPage(): string {
-  const split = splitArea(state.query);
-  const effArea = area() ?? split.area;
-  const results = state.query.trim()
-    ? search(shops(), { what: split.what, area: effArea, near: state.near, filters: state.filters })
-    : [];
-  const count = !state.query.trim()
-    ? ''
-    : `<p class="meta" role="status">${plural(results.length, 'business', 'businesses')} for “${esc(split.what || state.query)}”${state.near ? ', nearest first' : effArea ? ` in ${esc(effArea.name)}` : ''}</p>`;
-  return `
-    <h1 tabindex="-1">Search</h1>
-    <p class="label">What do you need?</p>
-    <form class="searchbox" data-act="search" role="search">
-      ${ICON.search}
-      <input name="q" type="search" enterkeyhint="search" autocomplete="off" placeholder="e.g. phone charger" value="${esc(state.query)}" aria-label="What do you need?">
-    </form>
-    ${dataBanner()}
-    <div class="chips" role="group" aria-label="Quick searches">
-      ${QUICK.map((q) => `<button class="chip" data-quick="${esc(q)}">${esc(q)}</button>`).join('')}
-    </div>
-    <div class="chips" role="group" aria-label="Filters">
-      <button class="chip near" data-act="near" aria-pressed="${!!state.near}">${state.locating ? 'Finding you…' : 'Near me'}</button>
-      ${filterChip('openNow', 'Open now')}
-      ${filterChip('openLate', 'Open late')}
-      ${filterChip('openSunday', 'Open Sunday')}
-    </div>
-    ${state.locError ? `<p class="meta closed" role="alert">${esc(state.locError)}</p>` : ''}
-    <button class="btn line wide" data-act="list">My shopping list – find it all in the fewest stops</button>
-    ${count}
-    ${results.map((r, i) => businessCard(r.shop, i, r.matched, r.distance)).join('')}
-    ${state.query.trim() && !results.length ? `<div class="box"><h3>Nothing found yet</h3><p>Try another word${area() ? ', choose “All areas” on Home' : ''}, or turn off a filter.</p></div>` : ''}
-    ${!shops().length ? emptyData() : ''}`;
+function noResults(): string {
+  return `<div class="box"><b>No businesses found yet.</b><br>Try another word, pick “All areas”, or turn off a filter.</div>`;
 }
 
-function statusText(shop: Shop): { text: string; cls: string } | undefined {
-  if (!shop.hours) return undefined;
-  const s = openState(shop.hours);
-  if (s.open) return { text: 'Open', cls: 'open' };
-  if (s.opens && s.opens.day === ukNow().day) return { text: `Opens ${formatTime(s.opens.min)}`, cls: 'closed' };
-  return { text: 'Closed', cls: 'closed' };
+function openLine(shop: Shop): string {
+  if (!shop.hours) return shop.hoursText ? `<span class="meta">${esc(shop.hoursText)}</span>` : '';
+  const open = openState(shop.hours).open;
+  return `<span class="open ${open ? '' : 'closed'}">${esc(openLabel(shop.hours))}</span>`;
 }
 
 function businessCard(shop: Shop, i: number, matched: string[], distance?: number): string {
   const meta = [shop.category, shop.area, distance !== undefined ? formatMiles(distance) : ''].filter(Boolean).join(' · ');
-  const st = statusText(shop);
-  const sells = matched.length ? `<span class="meta">Sells ${matched.map((m) => `<mark>${esc(m)}</mark>`).join(', ')}</span>` : '';
+  const sells = matched.length
+    ? `<span class="sells">Sells: ${matched.map((m) => `<mark>${esc(m)}</mark>`).join(', ')}</span>`
+    : shop.sells.length
+      ? `<span class="sells">${esc(shop.sells.slice(0, 5).join(', '))}${shop.sells.length > 5 ? '…' : ''}</span>`
+      : '';
   return `
-    <button class="card" data-business="${esc(shop.id)}" style="--i:${Math.min(i, 10)}">
-      <span class="tile" aria-hidden="true">${esc(shop.name.charAt(0).toUpperCase())}</span>
-      <span class="body"><span class="name">${esc(shop.name)}${shop.plus ? ' <span class="badge">PLUS</span>' : ''}</span>
-        ${meta ? `<span class="meta">${esc(meta)}</span>` : ''}${sells}</span>
-      ${st ? `<span class="status ${st.cls}">${esc(st.text)}</span>` : ''}
+    <button class="shop" data-business="${esc(shop.id)}" style="--i:${Math.min(i, 10)}">
+      <span class="name">${esc(shop.name)}</span>${shop.plus ? ' <span class="badge plus">PLUS</span>' : ''}
+      ${meta ? `<span class="meta">${esc(meta)}</span>` : ''}
+      ${openLine(shop)}
+      ${sells}
     </button>`;
 }
 
@@ -290,76 +243,67 @@ function whatsappHref(n: string) {
 function businessPage(id: string): string {
   const shop = shops().find((s) => s.id === id);
   if (!shop)
-    return `<button class="back" data-act="back" aria-label="Back">${ICON.back}</button><h1 tabindex="-1">Not found</h1><p>That business isn't on Simple Zone any more.</p>`;
+    return `<button class="back" data-go="home">← All businesses</button><h1 tabindex="-1">Not found</h1><p>That business isn't on Simple Zone any more.</p>`;
   const today = ukNow().day;
   const order = [1, 2, 3, 4, 5, 6, 0];
   // The sheet has no street address, so Maps searches for the business by name and area.
   const mapsHref = `https://maps.apple.com/?q=${encodeURIComponent([shop.name, shop.area].filter(Boolean).join(', '))}`;
-  const primary = shop.phone
-    ? `<a class="btn primary" href="${phoneHref(shop.phone)}">${ICON.phone}Call</a>`
-    : shop.whatsapp
-      ? `<a class="btn primary" href="${whatsappHref(shop.whatsapp)}">${ICON.chat}WhatsApp</a>`
-      : shop.website
-        ? `<a class="btn primary" href="${esc(shop.website)}">${ICON.web}Website</a>`
-        : '';
-  const todayLine = shop.hours
-    ? `${esc(openLabel(shop.hours))}<small>Today: ${esc(formatSpans(shop.hours[today]))}</small>`
-    : esc(shop.hoursText ?? 'Opening times not listed yet');
-  const links = [
-    shop.phone && shop.whatsapp ? `<a class="btn line" href="${whatsappHref(shop.whatsapp)}">WhatsApp</a>` : '',
-    shop.website && (shop.phone || shop.whatsapp) ? `<a class="btn line" href="${esc(shop.website)}">Visit website</a>` : '',
-    shop.area ? `<a class="btn line" href="${mapsHref}" aria-label="Find ${esc(shop.name)} in Maps">Find in Maps</a>` : '',
+  const actions = [
+    shop.area ? `<a class="btn-line" href="${mapsHref}" aria-label="Directions to ${esc(shop.name)} in Maps">Directions</a>` : '',
+    shop.phone ? `<a class="btn-line" href="${phoneHref(shop.phone)}">Call</a>` : '',
+    shop.whatsapp ? `<a class="btn-line" href="${whatsappHref(shop.whatsapp)}">WhatsApp</a>` : '',
+    shop.website ? `<a class="btn-line" href="${esc(shop.website)}">Visit website</a>` : '',
   ].join('');
   return `
-    <section class="hero">
-      <button class="back" data-act="back" aria-label="Back">${ICON.back}</button>
-      <h1 tabindex="-1">${esc(shop.name)}</h1>
+    <div class="shoppage">
+      <button class="back" data-go="home">← All businesses</button>
+      <h1 tabindex="-1">${esc(shop.name)}${shop.plus ? ' <span class="badge plus">PLUS</span>' : ''}</h1>
       <p class="meta">${esc([shop.category, shop.area].filter(Boolean).join(' · '))}</p>
-    </section>
-    ${primary ? `<div class="actions">${primary}</div>` : ''}
-    <p class="today">${ICON.clock}<span>${todayLine}</span></p>
-    ${links ? `<div class="links">${links}</div>` : ''}
-    ${
-      shop.sells.length
-        ? `<h2>What they sell</h2>
-    <div class="chips">${shop.sells.map((s) => `<button class="chip" data-quick="${esc(s)}">${esc(s)}</button>`).join('')}</div>`
-        : ''
-    }
-    ${
-      shop.hours
-        ? `<h2>Opening times</h2>
-    <table class="hours"><caption class="sr-only">Opening times</caption>${order
-      .map(
-        (d) =>
-          `<tr class="${d === today ? 'now' : ''}"><th scope="row">${DAY_NAMES[d]}${d === today ? '<span class="sr-only"> (today)</span>' : ''}</th><td>${esc(formatSpans(shop.hours![d]))}</td></tr>`,
-      )
-      .join('')}</table>`
-        : ''
-    }`;
+      <p>${openLine(shop)}</p>
+      ${actions ? `<div class="actions">${actions}</div>` : ''}
+      ${
+        shop.sells.length
+          ? `<h2>What they sell</h2>
+      <div class="chips">${shop.sells.map((s) => `<button class="chip" data-quick="${esc(s)}">${esc(s)}</button>`).join('')}</div>`
+          : ''
+      }
+      <h2>Opening times</h2>
+      ${
+        shop.hours
+          ? `<table class="hours"><caption class="sr-only">Opening times</caption>${order
+              .map(
+                (d) =>
+                  `<tr class="${d === today ? 'today' : ''}"><th scope="row">${DAY_NAMES[d]}${d === today ? '<span class="sr-only"> (today)</span>' : ''}</th><td>${esc(formatSpans(shop.hours![d]))}</td></tr>`,
+              )
+              .join('')}</table>`
+          : `<p>${esc(shop.hoursText ?? 'Not listed yet – call or message to check.')}</p>`
+      }
+    </div>`;
 }
 
 function zoniePage(): string {
   const stamps = 0; // No stamps until Zonie stamping is live.
-  const empty = Array.from(
+  const circles = Array.from(
     { length: ZONIE_CARD_SIZE },
-    (_, i) => `<span class="stamp ${i < stamps ? 'got' : ''}">${i < stamps ? ICON.check : ''}</span>`,
+    (_, i) => `<span class="stamp ${i < stamps ? 'got' : ''}">${i < stamps ? TICK : ''}</span>`,
   ).join('');
   return `
-    <h1 tabindex="-1">Your Zonie cards</h1>
+    <button class="back" data-go="home">← All businesses</button>
+    <h1 tabindex="-1">Your Zonie loyalty cards</h1>
     <p class="meta">One loyalty card for every business on Simple Zone.</p>
     ${
       ZONIE_STAMPS_LIVE
         ? ''
         : `<div class="zonie" role="img" aria-label="Your Zonie card: ${stamps} of ${ZONIE_CARD_SIZE} stamps">
-      <header><span>Your card</span><small>${stamps} of ${ZONIE_CARD_SIZE}</small></header>
-      <div class="stamps" aria-hidden="true">${empty}</div>
+      <div class="zonie-head"><span>Your card</span><small>${stamps} of ${ZONIE_CARD_SIZE}</small></div>
+      <div class="stamps" aria-hidden="true">${circles}</div>
       <p>Collect ${ZONIE_CARD_SIZE} stamps for a reward.</p>
     </div>
-    <p class="center" style="text-align:center"><span class="soon">Coming soon</span></p>
-    <p class="note">Zonie stamps aren't switched on yet. Your cards will appear here.</p>`
+    <p class="center"><span class="badge soon">COMING SOON</span></p>
+    <p class="meta center">Zonie stamps aren't switched on yet. Your cards will appear here.</p>`
     }
     <div class="box">
-      <h3>Why people love Zonie</h3>
+      <b>Why people love Zonie</b>
       <ul>
         <li>Free for shoppers – always</li>
         <li>Works with every Simple Zone business</li>
@@ -371,30 +315,30 @@ function zoniePage(): string {
 
 function aboutPage(): string {
   return `
+    <button class="back" data-go="home">← All businesses</button>
     <div class="about-head">
       ${mark('about')}
       <h1 tabindex="-1">About Simple Zone</h1>
       <p class="tagline">${esc(TAGLINE)}</p>
     </div>
-    <p>Simple Zone is a free local app. Type what you need and it shows the nearest businesses that have it, whether they're open now, and how to get in touch.</p>
+    <p>Simple Zone is a free local app. Type what you need and it shows the nearest businesses that have it, whether they're open right now, and how to get in touch.</p>
     <p>We're starting in Southampton and across Hampshire.</p>
     <div class="box">
-      <h3>Your privacy</h3>
-      <p><b>We never sell your data.</b></p>
-      <p>No accounts, no adverts, no tracking. Your location is only used on this phone when you tap Near me. It is never stored or sent to us. Your shopping list and text size stay on this phone.</p>
-      <p><a href="${PRIVACY_URL}">Read the privacy policy</a></p>
+      <b>Your privacy</b><br>
+      <b>We never sell your data.</b><br>
+      No accounts, no adverts, no tracking. Your location is only used on this phone when you tap Near me. It is never stored or sent to us. Your shopping list and text size stay on this phone.
+      <div class="actions"><a class="btn-line" href="${PRIVACY_URL}">Read the privacy policy</a></div>
     </div>
     <p>Simple Zone is made by Aurora Glance (part of Toz Industries), a small Southampton business making apps and websites.</p>
-    <div class="links">
-      <a class="btn line" href="https://wa.me/${WHATSAPP}" aria-label="WhatsApp us on ${WHATSAPP_SHOWN}">WhatsApp us</a>
-      <a class="btn line" href="mailto:${EMAIL}">Email us</a>
-    </div>
-    <button class="btn primary wide" data-act="join" style="margin-top:14px">Add your business</button>`;
+    <div class="actions">
+      <a class="btn-line" href="https://wa.me/${WHATSAPP}" aria-label="WhatsApp us on ${WHATSAPP_SHOWN}">WhatsApp us</a>
+      <a class="btn-line" href="mailto:${EMAIL}">Email us</a>
+    </div>`;
 }
 
 function joinPage(): string {
   return `
-    <button class="back" data-act="back" aria-label="Back">${ICON.back}</button>
+    <button class="back" data-go="home">← All businesses</button>
     <h1 tabindex="-1">Simple pricing</h1>
     <p class="meta">Cancel any time.</p>
     <div class="plan">
@@ -406,12 +350,13 @@ function joinPage(): string {
       <ul><li>Offers on the home screen</li><li>Zonie loyalty card</li><li>Alerts to local shoppers</li><li>Top of your area's list</li></ul>
     </div>
     <div class="launch">Launch offer<b>First 50 businesses: Plus free for your first year</b></div>
-    <p class="note">No obligation – Plus won't renew automatically.</p>
-    <p class="note"><b>Big stores over 280 m²: £50 a month for year 1</b><br>then £100 a month · Free listing stays free for all</p>
-    <a class="btn primary wide" href="${JOIN_URL}">Add your business – free</a>
+    <p class="meta center">No obligation – Plus won't renew automatically.</p>
+    <p class="big-note">Big stores over 280 m²: £50 a month for year 1</p>
+    <p class="meta center">then £100 a month · Free listing stays free for all</p>
+    <div class="actions center-row"><a class="btn-teal" href="${JOIN_URL}">Add your business – free</a></div>
     <div class="box">
-      <p>Prefer to talk? Anthony can set it all up for you.</p>
-      <div class="links"><a class="btn line" href="https://wa.me/${WHATSAPP}">WhatsApp ${WHATSAPP_SHOWN}</a><a class="btn line" href="mailto:${EMAIL}">Email us</a></div>
+      Prefer to talk? Anthony can set it all up for you.
+      <div class="actions"><a class="btn-line" href="https://wa.me/${WHATSAPP}">WhatsApp ${WHATSAPP_SHOWN}</a><a class="btn-line" href="mailto:${EMAIL}">Email us</a></div>
     </div>`;
 }
 
@@ -421,19 +366,17 @@ function listSheet(): string {
   return `
     <div class="sheet-bg" data-act="closelist">
       <div class="sheet" role="dialog" aria-modal="true" aria-label="My shopping list">
-        <h2>My shopping list</h2>
+        <h2>🛒 My shopping list</h2>
         <p class="meta">One thing per line. Simple Zone finds it all in the fewest stops.</p>
         <textarea data-act="listtext" aria-label="Shopping list, one thing per line" placeholder="bread&#10;phone charger&#10;coffee">${esc(state.list)}</textarea>
         ${
           plan
             ? `<h2>${plural(plan.stops.length, 'stop', 'stops')}</h2>
-               ${plan.stops
-                 .map((s, i) => businessCard(s.shop, i, s.items, s.distance))
-                 .join('')}
-               ${plan.missing.length ? `<p class="meta">Not found yet: ${esc(plan.missing.join(', '))}</p>` : ''}`
+               ${plan.stops.map((s, i) => businessCard(s.shop, i, s.items, s.distance)).join('')}
+               ${plan.missing.length ? `<p class="msg">Not found yet: ${esc(plan.missing.join(', '))}</p>` : ''}`
             : ''
         }
-        <div class="row"><button class="btn line" data-act="clearlist">Clear</button><button class="btn primary" data-act="closelist-btn">Done</button></div>
+        <div class="row"><button class="btn-line" data-act="clearlist">Clear</button><button class="btn-teal" data-act="closelist-btn">Done</button></div>
       </div>
     </div>`;
 }
@@ -450,7 +393,9 @@ async function refresh() {
 
 function runSearch(q: string) {
   state.query = q;
-  go({ name: 'search' });
+  if (state.view.name !== 'home') go({ name: 'home' });
+  else render();
+  document.querySelector('.count')?.scrollIntoView({ block: 'start', behavior: 'smooth' });
 }
 
 /** The iPhone app's bridge (WebScreen.swift). Missing in a normal browser. */
@@ -514,22 +459,15 @@ function locate() {
 
 app.addEventListener('click', (e) => {
   const t = e.target as HTMLElement;
-  const el = t.closest<HTMLElement>('[data-tab],[data-business],[data-quick],[data-filter],[data-area],[data-cat],[data-act]');
+  const el = t.closest<HTMLElement>('[data-go],[data-business],[data-quick],[data-filter],[data-act]');
   if (!el) return;
   const act = el.dataset.act;
   if (act === 'closelist' && t !== el) return; // tap inside the sheet, not on the dim background
-  if (el.dataset.tab) return go({ name: el.dataset.tab as Tab });
-  if (el.dataset.business) return go({ name: 'business', id: el.dataset.business, from: tabOf(state.view) });
-  if (el.dataset.quick) return runSearch(el.dataset.quick);
-  if (el.dataset.area !== undefined) {
-    state.areaName = el.dataset.area;
-    state.near = undefined;
-    save('sz.area', state.areaName);
-    return render();
-  }
-  if (el.dataset.cat !== undefined) {
-    state.category = el.dataset.cat;
-    return render();
+  if (el.dataset.go) return go({ name: el.dataset.go } as View);
+  if (el.dataset.business) return go({ name: 'business', id: el.dataset.business });
+  if (el.dataset.quick) {
+    state.showList = false;
+    return runSearch(el.dataset.quick);
   }
   if (el.dataset.filter) {
     const k = el.dataset.filter as keyof Filters;
@@ -545,10 +483,6 @@ app.addEventListener('click', (e) => {
       return document.querySelector<HTMLElement>('.sizebtn')?.focus();
     case 'near':
       return locate();
-    case 'back':
-      return go({ name: tabOf(state.view) });
-    case 'join':
-      return go({ name: 'join', from: tabOf(state.view) });
     case 'reload':
       return void refresh();
     case 'list':
@@ -579,6 +513,10 @@ app.addEventListener('change', (e) => {
     state.areaName = (t as HTMLSelectElement).value;
     state.near = undefined;
     save('sz.area', state.areaName);
+    render();
+  }
+  if (t.dataset.act === 'category') {
+    state.category = (t as HTMLSelectElement).value;
     render();
   }
   if (t.dataset.act === 'listtext') {
@@ -627,9 +565,9 @@ async function startTour() {
   await runTour([
     { name: 'home', run: () => go({ name: 'home' }) },
     { name: 'search', run: () => runSearch('coffee') },
-    { name: 'business', run: () => first() && go({ name: 'business', id: first()!.id, from: 'search' }) },
+    { name: 'business', run: () => first() && go({ name: 'business', id: first()!.id }) },
     { name: 'zonie', run: () => go({ name: 'zonie' }) },
     { name: 'about', run: () => go({ name: 'about' }) },
-    { name: 'pricing', run: () => go({ name: 'join', from: 'about' }) },
+    { name: 'pricing', run: () => go({ name: 'join' }) },
   ]);
 }
