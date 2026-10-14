@@ -416,3 +416,19 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 1. Check the "Simple Zone iOS" GitHub runs 7 and 8 (screenshots of every screen on small and large iPhones, light and dark) and fix anything that looks wrong.
 2. Plug in the sheet link and font files when Tony sends them.
 3. Final code check and tidy-up. Ask before deleting: the example businesses in `src/shops.ts` (now only used by tests), `@fontsource/roboto`, `public/privacy.html` (the app links to the website one now), `Splash.imageset`, and the README's old wording.
+
+## Window posters – 14 Oct 2026, 07:31 UTC (08:31 UK)
+
+- Tony promised Matt Bottley Landscapes "your own A4 window poster with a QR code" (email 13 Oct). No poster existed anywhere (project, Drive or email), so a new one was made in the SZ navy/teal look.
+- **New folder `posters/`:**
+  - `Simple-Zone-window-poster-Holistic-Directions.pdf`
+  - `Simple-Zone-window-poster-Toz-Industries.pdf`
+  - `Simple-Zone-window-poster-blank.pdf` (no business name)
+  - `make-poster.mjs`, which makes more. Run: `node make-poster.mjs <outDir> "Name|Category|Area"`. It needs `qrcode` and `playwright-core`, installed only in Claude's scratch folder, not in this project.
+- **QR code** opens https://simplezone.auroraglance.com. All 3 were scan-checked. Tony chose "business's own page", but the live website's code isn't in this repo and auroraglance.com can't be reached from here, so a per-business link couldn't be confirmed. Swap the URL in the script once one exists.
+- Nothing installed in or removed from the project.
+
+**Next steps**
+1. Make Matt's poster when he signs up (he said "this week").
+2. Per-business QR links, once the live website has a page per business.
+3. Out of date in the outreach email: "Plus free for 6 months / £5 a month" (now first year free) and the Zonie loyalty card (hidden in 1.0). The form title "sign up your shop" should say "business".
