@@ -3,6 +3,8 @@
 Simple Zone only. Kept separate from Fillkin and every other project in this repo.
 Branch: `claude/wonderful-mendel-9hc164`.
 
+**Times below are UTC.** UK time (British Summer Time, until 25 Oct 2026) is one hour ahead: 06:00 UTC = 07:00 in the UK. Zip names ending "UTC" follow the same rule.
+
 ---
 
 ## Chunk 1 – 14 Oct 2026, 02:13–02:17 UTC
