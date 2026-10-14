@@ -201,6 +201,13 @@ Tony: "delete all existence of old style sz".
 **Installed / removed**
 - Removed: the 3 Capacitor packages and Roboto (`npm uninstall`). Nothing installed.
 
+## Real app tested and sent – 14 Oct 2026, 03:45 UTC
+
+- **"Simple Zone iOS" run 14** (commit `eed4ba2`) **passed**: SimpleZoneiOS built, and on a small and a large iPhone simulator, light and dark, every screen showed within seconds and the app kept running.
+- **Run 16** (commit `78276e0`, old style deleted, same SimpleZoneiOS as now) **passed** too.
+- **Sent to Tony:** "Simple Zone iPhone app (Xcode, new style) 20261014-0336UTC.zip" (71 KB, `SimpleZoneiOS/` at the top, made from the commit). icon-1024.png md5 is still `91e74b40…`.
+- Nothing uploaded to TestFlight or the App Store.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
