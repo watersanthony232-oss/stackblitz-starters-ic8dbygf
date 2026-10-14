@@ -95,6 +95,21 @@ No reply after chunk 2, so I carried on as agreed.
 **Installed / removed**
 - `pyspellchecker`, installed in a throwaway folder outside the project (not part of the app). Nothing else.
 
+## Decision – 14 Oct 2026, 02:45 UTC
+
+**Tony: the real Simple Zone iPhone project is the 03:02 zip copy** (`SimpleZoneiOS/SimpleZone.xcodeproj`, from "Simple Zone iPhone app (Xcode, new SZ icon) 20261014-0302.zip" in OneDrive › Simple Zone). It is not in this repo or Google Drive.
+
+- **This repo's copy** (`simplezone/`, Capacitor, scheme `App`) is on hold. Nothing has been deleted.
+  - Its work (sheet loader, opening hours, new style, launch screen, privacy manifest, App Store privacy draft) can be moved across once I can see the zip copy.
+- **Both copies use the app ID `com.auroraglance.simplezone`,** so installing one replaces the other on the Simulator. That explains the wrong icon.
+- **Repo icon:** teal S and navy Z on white, md5 `082c8ce5ce4dedb99dcbd8d2c841d7c9`. Tony's expected icon-1024.png is md5 `91E74B4069BA2BF9F36B93118B84C8D8`, so they are different files.
+- **"Simple Zone iOS" run 8 passed:** on the iPhone 16e/Pro Max-type simulators, light and dark, every screen showed and the app kept running (28 screenshots). The screenshots couldn't be downloaded from the build machine; they're on the run's GitHub page.
+
+**Next steps**
+1. Tony uploads the 03:02 zip here (or to Google Drive) so I can see the real project.
+2. Compare it with the repo copy and list what's missing, before changing anything.
+3. Move the agreed work into the real project.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
