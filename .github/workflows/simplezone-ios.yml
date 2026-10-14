@@ -59,21 +59,26 @@ jobs:
           BUNDLE=com.auroraglance.simplezone
           APP=build/Build/Products/Debug-iphonesimulator/App.app
           mkdir -p screenshots
-          # Pick an available iPhone whose name matches, or create one from the newest iOS runtime.
+          # Use the newest iOS runtime, and only iPhone models it supports.
+          RUNTIME=$(xcrun simctl list runtimes available -j | jq -c '[.runtimes[] | select(.platform == "iOS")] | last')
+          RUNTIME_ID=$(echo "$RUNTIME" | jq -r .identifier)
+          echo "Runtime: $(echo "$RUNTIME" | jq -r .name)"
+          # The first model matching one of the patterns (in order), then an existing simulator of it, or a new one.
           pick() {
-            local pattern="$1" udid
-            udid=$(xcrun simctl list devices available -j | jq -r --arg p "$pattern" \
-              '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | test($p))] | last | .udid // empty')
-            if [ -z "$udid" ]; then
-              local type runtime
-              type=$(xcrun simctl list devicetypes -j | jq -r --arg p "$pattern" '[.devicetypes[] | select(.name | test($p))] | last | .identifier')
-              runtime=$(xcrun simctl list runtimes available -j | jq -r '[.runtimes[] | select(.platform == "iOS")] | last | .identifier')
-              udid=$(xcrun simctl create "SZ $pattern" "$type" "$runtime")
-            fi
+            local type="" pattern udid
+            for pattern in "$@"; do
+              type=$(echo "$RUNTIME" | jq -r --arg p "$pattern" '[.supportedDeviceTypes[] | select(.name | test($p))] | last | .identifier // empty')
+              [ -n "$type" ] && break
+            done
+            if [ -z "$type" ]; then echo "::error::No iPhone model matches $*" >&2; return 1; fi
+            udid=$(xcrun simctl list devices available -j | jq -r --arg r "$RUNTIME_ID" --arg t "$type" \
+              '[.devices[$r][]? | select(.deviceTypeIdentifier == $t)] | first | .udid // empty')
+            [ -z "$udid" ] && udid=$(xcrun simctl create "SZ test" "$type" "$RUNTIME_ID")
             echo "$udid"
           }
-          SMALL=$(pick 'iPhone SE')
-          LARGE=$(pick 'Pro Max')
+          # Small: iPhone SE, else the "e" model, else mini, else the standard model. Large: Pro Max, else Plus.
+          SMALL=$(pick '^iPhone SE' '^iPhone [0-9]+e$' 'mini$' '^iPhone [0-9]+$')
+          LARGE=$(pick 'Pro Max$' 'Plus$')
           FAILED=0
           for size in small large; do
             if [ "$size" = small ]; then DEVICE=$SMALL; else DEVICE=$LARGE; fi
