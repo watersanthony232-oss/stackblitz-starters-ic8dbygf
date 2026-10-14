@@ -438,3 +438,7 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 - Tony: "the first pic cut off sz". Looked whole in Chromium and pdftoppm, so his phone's PDF viewer is likely drawing the SVG cut-out differently.
 - **Fix:** the logo is now drawn into the PDF as a plain picture (PNG, 2x), and the white tile has more space round it.
 - Remade all 3 posters. Each is still 1 A4 page, and the QR codes still scan to https://simplezone.auroraglance.com.
+
+## iPhone check passed – 14 Oct 2026, 07:36 UTC (08:36 UK)
+
+- "Simple Zone iOS" run 30 (commit 5bdc66c, "ready to publish") **passed**. It finished 07:29 UTC. Later commits only change the sheet notes, HANDOVER and posters, not the app.
