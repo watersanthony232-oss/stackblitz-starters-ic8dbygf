@@ -75,7 +75,27 @@ No reply after chunk 2, so I carried on as agreed.
 - New files: `ios/App/App/PrivacyInfo.xcprivacy`, `Assets.xcassets/LaunchLogo.imageset`, `Assets.xcassets/LaunchBackground.colorset`, 8 icon sizes, `src/tour.ts`, `APP-STORE-PRIVACY.md`.
 - `Assets.xcassets/Splash.imageset` is no longer used. I'll ask before deleting it.
 
-**Waiting on Tony** (still open after chunk 3)
+## Chunk 4 – 14 Oct 2026, 02:36–02:41 UTC
+
+**Simulator check**
+- Run 6 failed before any screenshots: the GitHub Mac (Xcode 26.6, iOS 26.5) has no iPhone SE simulator, and the old SE model can't run iOS 26. The app itself built fine.
+- Fixed: the check now picks only models the installed iOS supports.
+  - Small: SE, else the "e" model, else mini, else the standard iPhone.
+  - Large: Pro Max, else Plus.
+- Run 7 (the fix) was still running at the end of this chunk.
+
+**Spelling**
+- Every word the app shows, including VoiceOver labels and search hints, plus privacy.html, support.html, the location prompt, APP-STORE-PRIVACY.md and this file, went through a spell checker.
+- No spelling mistakes. Everything it flagged was a place name, a brand or tech term, or a correct British spelling ("centre").
+- I also read every line of the app's text. Fixed:
+  - VoiceOver read "Test CafePLUS" with no space. Now "Test Cafe PLUS".
+  - The Zonie card's VoiceOver label said "Example Zonie card" while the screen says "Your card". Now "Your Zonie card: 0 of 10 stamps".
+  - Search's "nothing found" hint said to pick "All areas", but that's on Home, not Search. It now says "choose All areas on Home", and only when an area is chosen.
+
+**Installed / removed**
+- `pyspellchecker`, installed in a throwaway folder outside the project (not part of the app). Nothing else.
+
+**Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
 3. th2os modern font files (Thick, Medium, Thin).
@@ -83,7 +103,6 @@ No reply after chunk 2, so I carried on as agreed.
 5. The pitch video says "First 50 businesses: Plus free for 6 months", but the app says "free for your first year". Which is right?
 
 **Next steps**
-1. Check the "Simple Zone iOS" GitHub run: all screens on small and large iPhones, light and dark, and fix anything that looks wrong.
-2. Spelling check of every word in the app.
-3. Plug in the sheet link and font files when Tony sends them.
-4. Final code check and tidy-up. Ask before deleting: the example businesses in `src/shops.ts` (now only used by tests), `@fontsource/roboto`, `public/privacy.html` (the app links to the website one now), `Splash.imageset`, and the README's old wording.
+1. Check the "Simple Zone iOS" GitHub runs 7 and 8 (screenshots of every screen on small and large iPhones, light and dark) and fix anything that looks wrong.
+2. Plug in the sheet link and font files when Tony sends them.
+3. Final code check and tidy-up. Ask before deleting: the example businesses in `src/shops.ts` (now only used by tests), `@fontsource/roboto`, `public/privacy.html` (the app links to the website one now), `Splash.imageset`, and the README's old wording.

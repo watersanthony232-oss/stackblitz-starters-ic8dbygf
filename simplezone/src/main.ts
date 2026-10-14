@@ -254,7 +254,7 @@ function searchPage(): string {
     <button class="btn line wide" data-act="list">My shopping list – find it all in the fewest stops</button>
     ${count}
     ${results.map((r, i) => businessCard(r.shop, i, r.matched, r.distance)).join('')}
-    ${state.query.trim() && !results.length ? `<div class="box"><h3>Nothing found yet</h3><p>Try another word, pick “All areas”, or turn off a filter.</p></div>` : ''}
+    ${state.query.trim() && !results.length ? `<div class="box"><h3>Nothing found yet</h3><p>Try another word${area() ? ', choose “All areas” on Home' : ''}, or turn off a filter.</p></div>` : ''}
     ${!shops().length ? emptyData() : ''}`;
 }
 
@@ -273,7 +273,7 @@ function businessCard(shop: Shop, i: number, matched: string[], distance?: numbe
   return `
     <button class="card" data-business="${esc(shop.id)}" style="--i:${Math.min(i, 10)}">
       <span class="tile" aria-hidden="true">${esc(shop.name.charAt(0).toUpperCase())}</span>
-      <span class="body"><span class="name">${esc(shop.name)}${shop.plus ? '<span class="badge">PLUS</span>' : ''}</span>
+      <span class="body"><span class="name">${esc(shop.name)}${shop.plus ? ' <span class="badge">PLUS</span>' : ''}</span>
         ${meta ? `<span class="meta">${esc(meta)}</span>` : ''}${sells}</span>
       ${st ? `<span class="status ${st.cls}">${esc(st.text)}</span>` : ''}
     </button>`;
@@ -351,7 +351,7 @@ function zoniePage(): string {
     ${
       ZONIE_STAMPS_LIVE
         ? ''
-        : `<div class="zonie" aria-label="Example Zonie card: ${stamps} of ${ZONIE_CARD_SIZE} stamps">
+        : `<div class="zonie" role="img" aria-label="Your Zonie card: ${stamps} of ${ZONIE_CARD_SIZE} stamps">
       <header><span>Your card</span><small>${stamps} of ${ZONIE_CARD_SIZE}</small></header>
       <div class="stamps" aria-hidden="true">${empty}</div>
       <p>Collect ${ZONIE_CARD_SIZE} stamps for a reward.</p>
