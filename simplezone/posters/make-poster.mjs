@@ -26,8 +26,8 @@ function page({ name, category, area }) {
 html, body { width: 210mm; height: 297mm; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; color: #11244E; background: #fff }
 .p { height: 297mm; display: flex; flex-direction: column; align-items: center; text-align: center }
 .top { width: 100%; background: #11244E; color: #fff; padding: 14mm 12mm 12mm; display: flex; flex-direction: column; align-items: center }
-.tile { background: #fff; border-radius: 6mm; padding: 5mm 7mm; }
-.tile svg { width: 62mm; display: block }
+.tile { background: #fff; border-radius: 6mm; padding: 7mm 10mm; }
+.tile img { width: 58mm; height: 34mm; display: block }
 .find { font-size: 15pt; letter-spacing: .08em; text-transform: uppercase; color: #9FD8D6; margin-top: 7mm }
 .sz { font-size: 40pt; font-weight: 800; margin-top: 1mm }
 .mid { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 16mm }
@@ -40,7 +40,7 @@ html, body { width: 210mm; height: 297mm; font-family: -apple-system, "Helvetica
 .what { font-size: 13pt; color: #293436; margin-top: 6mm; line-height: 1.5 }
 .bot { width: 100%; background: #377D7B; color: #fff; padding: 7mm 10mm; font-size: 17pt; font-weight: 700 }
 </style></head><body><div class="p">
-<div class="top"><div class="tile">${mark}</div><div class="find">Find us on</div><div class="sz">Simple Zone</div></div>
+<div class="top"><div class="tile"><img src="${logo}" alt="Simple Zone logo"></div><div class="find">Find us on</div><div class="sz">Simple Zone</div></div>
 <div class="mid">
 ${name ? `<div class="name">${esc(name)}</div>` : ''}${sub ? `<div class="sub">${sub}</div>` : ''}
 <div class="qr">${qr}</div>
@@ -53,6 +53,11 @@ ${name ? `<div class="name">${esc(name)}</div>` : ''}${sub ? `<div class="sub">$
 }
 
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+// The logo goes in as a plain picture (some PDF viewers draw the SVG cut-out wrongly).
+const lp = await browser.newPage({ viewport: { width: 1040, height: 610 }, deviceScaleFactor: 2 });
+await lp.setContent(`<style>*{margin:0}body{background:#fff}svg{display:block;width:1040px;height:610px}</style>${mark}`);
+const logo = `data:image/png;base64,${(await lp.screenshot({ omitBackground: false })).toString('base64')}`;
+await lp.close();
 const ctx = await browser.newContext({ viewport: { width: 794, height: 1123 }, deviceScaleFactor: 1 });
 fs.mkdirSync(out, { recursive: true });
 for (const it of items) {

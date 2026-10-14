@@ -432,3 +432,9 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 1. Make Matt's poster when he signs up (he said "this week").
 2. Per-business QR links, once the live website has a page per business.
 3. Out of date in the outreach email: "Plus free for 6 months / £5 a month" (now first year free) and the Zonie loyalty card (hidden in 1.0). The form title "sign up your shop" should say "business".
+
+## Poster logo fix – 14 Oct 2026, 07:36 UTC (08:36 UK)
+
+- Tony: "the first pic cut off sz". Looked whole in Chromium and pdftoppm, so his phone's PDF viewer is likely drawing the SVG cut-out differently.
+- **Fix:** the logo is now drawn into the PDF as a plain picture (PNG, 2x), and the white tile has more space round it.
+- Remade all 3 posters. Each is still 1 A4 page, and the QR codes still scan to https://simplezone.auroraglance.com.
