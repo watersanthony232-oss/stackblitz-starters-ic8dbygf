@@ -34,7 +34,11 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      - name: Build web app and copy into iOS project
+      - name: Build web app (with the screenshot tour) and copy into iOS project
+        # VITE_TOUR=1 adds sample businesses and steps through every screen. Only this check builds it;
+        # the real app (and the TestFlight workflow) never includes it.
+        env:
+          VITE_TOUR: '1'
         run: npm run ios:sync
 
       - name: Build iOS app for the simulator
@@ -49,26 +53,59 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Run in an iPhone simulator and take screenshots
+      - name: Screenshot every screen on a small and a large iPhone, light and dark
         run: |
           set -euo pipefail
-          DEVICE=$(xcrun simctl list devices available -j \
-            | jq -r '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | startswith("iPhone"))] | last | .udid')
-          echo "Using simulator $DEVICE"
-          xcrun simctl boot "$DEVICE"
-          xcrun simctl bootstatus "$DEVICE" -b
           BUNDLE=com.auroraglance.simplezone
-          xcrun simctl install "$DEVICE" build/Build/Products/Debug-iphonesimulator/App.app
+          APP=build/Build/Products/Debug-iphonesimulator/App.app
           mkdir -p screenshots
-          xcrun simctl launch "$DEVICE" "$BUNDLE"
-          sleep 8
-          xcrun simctl io "$DEVICE" screenshot screenshots/1-launch.png
-          sleep 25
-          xcrun simctl io "$DEVICE" screenshot screenshots/2-results.png
-          # The app must still be running (not crashed).
-          # (Save the list first: grep -q stopping early would break the pipe under pipefail.)
-          xcrun simctl spawn "$DEVICE" launchctl list > running.txt
-          grep -q "$BUNDLE" running.txt
+          # Pick an available iPhone whose name matches, or create one from the newest iOS runtime.
+          pick() {
+            local pattern="$1" udid
+            udid=$(xcrun simctl list devices available -j | jq -r --arg p "$pattern" \
+              '[.devices | to_entries[] | select(.key | contains("iOS")) | .value[] | select(.name | test($p))] | last | .udid // empty')
+            if [ -z "$udid" ]; then
+              local type runtime
+              type=$(xcrun simctl list devicetypes -j | jq -r --arg p "$pattern" '[.devicetypes[] | select(.name | test($p))] | last | .identifier')
+              runtime=$(xcrun simctl list runtimes available -j | jq -r '[.runtimes[] | select(.platform == "iOS")] | last | .identifier')
+              udid=$(xcrun simctl create "SZ $pattern" "$type" "$runtime")
+            fi
+            echo "$udid"
+          }
+          SMALL=$(pick 'iPhone SE')
+          LARGE=$(pick 'Pro Max')
+          FAILED=0
+          for size in small large; do
+            if [ "$size" = small ]; then DEVICE=$SMALL; else DEVICE=$LARGE; fi
+            echo "== $size: $(xcrun simctl list devices -j | jq -r --arg u "$DEVICE" '.devices[][] | select(.udid == $u) | .name')"
+            xcrun simctl boot "$DEVICE" || true
+            xcrun simctl bootstatus "$DEVICE" -b
+            xcrun simctl install "$DEVICE" "$APP"
+            for look in light dark; do
+              xcrun simctl ui "$DEVICE" appearance "$look"
+              xcrun simctl terminate "$DEVICE" "$BUNDLE" 2>/dev/null || true
+              LOG="screenshots/console-$size-$look.txt"
+              xcrun simctl launch --console-pty "$DEVICE" "$BUNDLE" > "$LOG" 2>&1 &
+              sleep 1.5
+              xcrun simctl io "$DEVICE" screenshot "screenshots/$size-$look-0-launch.png"
+              n=1
+              for screen in home search business zonie about pricing; do
+                # Wait for the app to say this screen is showing (up to 60s).
+                for _ in $(seq 1 60); do grep -q "SZ-TOUR $screen" "$LOG" && break; sleep 1; done
+                if ! grep -q "SZ-TOUR $screen" "$LOG"; then echo "::error::$size $look: $screen never showed"; FAILED=1; fi
+                sleep 1.5
+                xcrun simctl io "$DEVICE" screenshot "screenshots/$size-$look-$n-$screen.png"
+                n=$((n + 1))
+              done
+              # The app must still be running (not crashed).
+              xcrun simctl spawn "$DEVICE" launchctl list > running.txt
+              if ! grep -q "$BUNDLE" running.txt; then echo "::error::$size $look: app stopped running"; FAILED=1; fi
+              if grep -qiE "error|exception" "$LOG"; then echo "::warning::$size $look: errors in the console log"; grep -iE "error|exception" "$LOG" | head -20; fi
+              xcrun simctl terminate "$DEVICE" "$BUNDLE" 2>/dev/null || true
+            done
+            xcrun simctl shutdown "$DEVICE" || true
+          done
+          exit $FAILED
 
       - uses: actions/upload-artifact@v4
         if: always()

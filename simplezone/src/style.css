@@ -315,7 +315,9 @@ mark { background: var(--surface-2); color: var(--teal); border-radius: 4px; pad
   transition: opacity 0.5s ease;
 }
 .splash.gone { opacity: 0; pointer-events: none; }
-.splash .logo-spin { width: 140px; animation-duration: 6s; }
+/* Same size and place as the iPhone launch screen (LaunchScreen.storyboard), so nothing jumps. */
+.splash .logo-spin { width: 160px; margin: 0; box-shadow: none; animation-duration: 6s; }
+.splash .tagline { position: absolute; left: var(--gap); right: var(--gap); top: calc(50% + 80px); margin: 0; }
 
 /* ---------- Shopping list sheet ---------- */
 .sheet-bg { position: fixed; inset: 0; background: rgba(10, 30, 32, 0.45); display: flex; align-items: flex-end; z-index: 10; }

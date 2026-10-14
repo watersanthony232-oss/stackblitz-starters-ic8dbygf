@@ -15,6 +15,7 @@ import { DAY_NAMES, formatSpans, formatTime, openLabel, openState, ukNow } from 
 import { planStops, search, splitArea, type Filters, type Place } from './search';
 import { loadSheet, type SheetResult } from './sheet';
 import type { Shop } from './shops';
+import { runTour, TOUR_CSV } from './tour';
 
 const QUICK = ['coffee', 'haircut', 'massage', 'nails', 'phone charger', 'bread', 'takeaway', 'cider'];
 const SIZES = [
@@ -573,6 +574,9 @@ setInterval(() => {
 
 // ---------- Start: the logo spins gently while the businesses load ----------
 
+// Screenshot tour (GitHub check only): sample businesses instead of the live sheet.
+if (import.meta.env.VITE_TOUR) save('sz.sheet', JSON.stringify({ at: Date.now(), csv: TOUR_CSV }));
+
 applyTextSize();
 const splash = document.createElement('div');
 splash.className = 'splash';
@@ -585,5 +589,18 @@ void refresh().finally(() => {
   setTimeout(() => {
     splash.classList.add('gone');
     setTimeout(() => splash.remove(), 600);
+    if (import.meta.env.VITE_TOUR) void startTour();
   }, Math.max(0, 1200 - (Date.now() - shownAt)));
 });
+
+async function startTour() {
+  const first = () => shops().find((s) => s.hours) ?? shops()[0];
+  await runTour([
+    { name: 'home', run: () => go({ name: 'home' }) },
+    { name: 'search', run: () => runSearch('coffee') },
+    { name: 'business', run: () => first() && go({ name: 'business', id: first()!.id, from: 'search' }) },
+    { name: 'zonie', run: () => go({ name: 'zonie' }) },
+    { name: 'about', run: () => go({ name: 'about' }) },
+    { name: 'pricing', run: () => go({ name: 'join', from: 'about' }) },
+  ]);
+}

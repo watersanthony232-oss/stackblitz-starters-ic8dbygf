@@ -51,7 +51,31 @@ Tony said "go": look (a) from the pitch video (white top bar, tabs along the bot
 **Installed / removed**
 - Nothing installed. Roboto (`@fontsource/roboto`) is no longer used but is still installed. I'll ask before removing it.
 
-**Waiting on Tony** (still open after chunk 2)
+## Chunk 3 – 14 Oct 2026, 02:30–02:34 UTC
+
+No reply after chunk 2, so I carried on as agreed.
+
+**Done**
+- **App icon in all iPhone sizes:** 40, 58, 60, 80, 87, 120, 180 px, plus the 1024 px App Store icon. All made from the existing SZ icon, with no transparency (Apple rejects icons with see-through parts).
+- **Launch screen:** the SZ logo on a white tile, centred, on white in light mode and `#0F1517` in dark mode.
+  - The old dark launch image was a copy of the white one, so dark mode flashed white.
+  - The app's own spinning-logo launch screen now matches it exactly (160 pt, centred), so nothing jumps when the app takes over.
+  - The web page background is set to dark straight away in dark mode, so there's no white flash.
+- **`PrivacyInfo.xcprivacy`:** no tracking, no tracking domains, no data collected, no "required reason" APIs. Added to the Xcode project.
+- **`APP-STORE-PRIVACY.md`:** draft App Store privacy answers for Tony to check (answer: "No, we do not collect data").
+- **"Simple Zone iOS" GitHub check now:**
+  - builds a special version with a screenshot tour (sample businesses, steps through every screen);
+  - screenshots launch, Home, Search, business page, Zonie, About and Pricing;
+  - does this on a small iPhone (SE) and a large one (Pro Max), in light and dark;
+  - fails if a screen never shows or the app stops running.
+  The tour is in `src/tour.ts`. It is left out of the real app: the normal build was checked and has no tour code. The TestFlight workflow doesn't build it. Nothing was uploaded and TestFlight wasn't touched.
+
+**Installed / removed**
+- Nothing installed or removed.
+- New files: `ios/App/App/PrivacyInfo.xcprivacy`, `Assets.xcassets/LaunchLogo.imageset`, `Assets.xcassets/LaunchBackground.colorset`, 8 icon sizes, `src/tour.ts`, `APP-STORE-PRIVACY.md`.
+- `Assets.xcassets/Splash.imageset` is no longer used. I'll ask before deleting it.
+
+**Waiting on Tony** (still open after chunk 3)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
 3. th2os modern font files (Thick, Medium, Thin).
@@ -59,8 +83,7 @@ Tony said "go": look (a) from the pitch video (white top bar, tabs along the bot
 5. The pitch video says "First 50 businesses: Plus free for 6 months", but the app says "free for your first year". Which is right?
 
 **Next steps**
-1. App icon in all sizes, launch screen check, `PrivacyInfo.xcprivacy`, draft App Store privacy answers (`APP-STORE-PRIVACY.md`).
-2. "Simple Zone iOS" GitHub check: real iPhone Simulator screenshots, small and large iPhone, light and dark.
-3. Spelling check of every word in the app.
-4. Plug in the sheet link and font files when Tony sends them.
-5. Final code check and tidy-up. Ask before deleting: the example businesses in `src/shops.ts` (now only used by tests), `@fontsource/roboto`, `public/privacy.html` (the app links to the website one now), and the README's old wording.
+1. Check the "Simple Zone iOS" GitHub run: all screens on small and large iPhones, light and dark, and fix anything that looks wrong.
+2. Spelling check of every word in the app.
+3. Plug in the sheet link and font files when Tony sends them.
+4. Final code check and tidy-up. Ask before deleting: the example businesses in `src/shops.ts` (now only used by tests), `@fontsource/roboto`, `public/privacy.html` (the app links to the website one now), `Splash.imageset`, and the README's old wording.
