@@ -208,6 +208,18 @@ Tony: "delete all existence of old style sz".
 - **Sent to Tony:** "Simple Zone iPhone app (Xcode, new style) 20261014-0336UTC.zip" (71 KB, `SimpleZoneiOS/` at the top, made from the commit). icon-1024.png md5 is still `91e74b40…`.
 - Nothing uploaded to TestFlight or the App Store.
 
+## Top-bar logo fixed – 14 Oct 2026, 05:24 UTC
+
+Tony ran the new app: "old logo then new then old at the top in wrong colours".
+- **The top bar showed a teal map pin with an orange dot** (copied from the pitch video's Android screens), and "Simple" in teal and "Zone" in orange. That's the old pin logo.
+  - Now: the SZ logo in its own colours (teal `#04A4A2`, navy `#0A2551`) on a small white tile, so it shows in Dark Mode too, with "Simple Zone" next to it.
+  - The pin logo is gone from the app.
+  - Zonie stamps use a tick instead of a pin.
+- Checked in Chromium, light and dark. `SimpleZone/Web` rebuilt (no tour code).
+- **Still to find out:** what the first "old logo" at launch is.
+  - The launch screen shows the same SZ logo on a white tile.
+  - If Tony sees an orange pin there, it's iOS showing a saved picture of the old app's launch screen. Fix: Simulator › Device › Restart, then run again.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.

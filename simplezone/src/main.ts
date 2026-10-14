@@ -38,13 +38,12 @@ const ICON = {
   map: svg('<path d="M12 21s-6.5-5.8-6.5-11a6.5 6.5 0 0 1 13 0c0 5.2-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>'),
   clock: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   chat: svg('<path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/>'),
+  check: svg('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
   web: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18"/>'),
 };
-/** The Simple Zone pin, as in the Android app. */
-const PIN = `<svg class="pin" viewBox="0 0 22 28" aria-hidden="true"><path d="M11 1C5.5 1 1 5.4 1 10.8 1 18 11 27 11 27s10-9 10-16.2C21 5.4 16.5 1 11 1z" fill="var(--teal)"/><circle cx="11" cy="10.5" r="5.2" fill="#fff"/><circle cx="11" cy="10.5" r="2.6" fill="#D35F1A"/></svg>`;
 /** The SZ mark (also the app icon). Each copy needs its own ids. */
-const mark = (id: string) =>
-  `<svg class="logo-spin" viewBox="228 203 1040 610" role="img" aria-label="Simple Zone logo"><defs><path id="szs-${id}" d="M486 213 L893 213 L780 345 L486 345 A50 50 0 0 0 486 445 L690 445 A179 179 0 0 1 690 803 L238 803 L370 673 L690 673 A49 49 0 0 0 690 575 L486 575 A181 181 0 0 1 486 213 Z"/><mask id="szgap-${id}" maskUnits="userSpaceOnUse" x="228" y="203" width="1040" height="610"><rect x="228" y="203" width="1040" height="610" fill="#fff"/><use href="#szs-${id}" fill="#000" stroke="#000" stroke-width="22" stroke-linejoin="round"/></mask></defs><path fill="#0A2551" mask="url(#szgap-${id})" d="M893 213 L1258 213 L1040 673 L1258 673 L1148 803 L765 803 L880 673 L1035 345 L780 345 Z"/><use href="#szs-${id}" fill="#04A4A2"/></svg>`;
+const mark = (id: string, cls = 'logo-spin') =>
+  `<svg class="${cls}" viewBox="228 203 1040 610" role="img" aria-label="Simple Zone logo"><defs><path id="szs-${id}" d="M486 213 L893 213 L780 345 L486 345 A50 50 0 0 0 486 445 L690 445 A179 179 0 0 1 690 803 L238 803 L370 673 L690 673 A49 49 0 0 0 690 575 L486 575 A181 181 0 0 1 486 213 Z"/><mask id="szgap-${id}" maskUnits="userSpaceOnUse" x="228" y="203" width="1040" height="610"><rect x="228" y="203" width="1040" height="610" fill="#fff"/><use href="#szs-${id}" fill="#000" stroke="#000" stroke-width="22" stroke-linejoin="round"/></mask></defs><path fill="#0A2551" mask="url(#szgap-${id})" d="M893 213 L1258 213 L1040 673 L1258 673 L1148 803 L765 803 L880 673 L1035 345 L780 345 Z"/><use href="#szs-${id}" fill="#04A4A2"/></svg>`;
 
 // ---------- State ----------
 
@@ -138,7 +137,7 @@ function render() {
     `<button data-tab="${t}" ${tab === t ? 'aria-current="page"' : ''}>${icon}<span>${label}</span></button>`;
   app.innerHTML = `
     <header class="top">
-      <button class="wordmark" data-tab="home" aria-label="Simple Zone, home">${PIN}<span><span class="simple">Simple</span><span class="zone">Zone</span></span></button>
+      <button class="wordmark" data-tab="home" aria-label="Simple Zone, home"><span class="hdr-logo" aria-hidden="true">${mark('top', 'hdr-mark')}</span><span>Simple Zone</span></button>
       <button class="sizebtn" data-act="size" aria-label="Text size: ${SIZES[state.size].label}. Tap to change.">Aa</button>
     </header>
     <main>${body}<p class="foot">Simple Zone · by Aurora Glance</p></main>
@@ -343,7 +342,7 @@ function zoniePage(): string {
   const stamps = 0; // No stamps until Zonie stamping is live.
   const empty = Array.from(
     { length: ZONIE_CARD_SIZE },
-    (_, i) => `<span class="stamp ${i < stamps ? 'got' : ''}">${i < stamps ? ICON.map : ''}</span>`,
+    (_, i) => `<span class="stamp ${i < stamps ? 'got' : ''}">${i < stamps ? ICON.check : ''}</span>`,
   ).join('');
   return `
     <h1 tabindex="-1">Your Zonie cards</h1>

@@ -86,10 +86,10 @@ h3 { font-size: 1.05rem; margin: 0; }
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
-.wordmark { display: flex; align-items: center; gap: 8px; background: none; border: 0; padding: 0; font-size: 1.25rem; font-weight: var(--thick); }
-.wordmark .simple { color: var(--teal); }
-.wordmark .zone { color: var(--orange-text); }
-.pin { width: 22px; height: 28px; flex: none; }
+.wordmark { display: flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0; font-size: 1.25rem; font-weight: var(--thick); color: var(--ink); }
+/* The SZ logo in its own colours, on a white tile so the navy Z shows in Dark Mode too. */
+.hdr-logo { display: grid; place-items: center; width: 44px; height: 34px; flex: none; background: #ffffff; border-radius: 9px; border: 1px solid var(--line); }
+.hdr-mark { width: 34px; height: auto; }
 .sizebtn {
   margin-left: auto;
   min-width: 44px;
