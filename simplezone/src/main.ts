@@ -14,7 +14,7 @@ import {
 import { DAY_NAMES, formatSpans, formatTime, openLabel, openState, ukNow } from './hours';
 import { planStops, search, splitArea, type Filters, type Place } from './search';
 import { loadSheet, type SheetResult } from './sheet';
-import type { Shop } from './shops';
+import type { Shop } from './business';
 import { runTour, TOUR_CSV } from './tour';
 
 const QUICK = ['coffee', 'haircut', 'massage', 'nails', 'phone charger', 'bread', 'takeaway', 'cider'];

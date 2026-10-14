@@ -4,7 +4,7 @@
   Simple Zone privacy manifest.
   No tracking, no tracking domains, and no data collected: location is only used on the phone
   (to sort by distance) and is never sent anywhere. The shopping list and settings stay on the phone.
-  The app's own code uses none of Apple's "required reason" APIs. Capacitor ships its own manifest.
+  The app uses none of Apple's "required reason" APIs and no third-party code.
 -->
 <plist version="1.0">
 <dict>

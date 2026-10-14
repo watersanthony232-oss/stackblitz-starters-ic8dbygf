@@ -2,36 +2,31 @@
 
 *Local first – less driving, more living.*
 
-Simple Zone, from Aurora Glance (part of Toz Industries): a free local shopping app. Type what you need and it shows the nearest places that have it, whether they're open right now, and how to get there.
+Simple Zone, from Aurora Glance (part of Toz Industries): a free local app. Type what you need and it shows the nearest businesses that have it, whether they're open now, and how to get in touch.
 
-This is the **iPhone app**, made to look the same as the Simple Zone website and Android app (matched to the pitch video):
+## What's here
 
-- Search "what do you need?", or tap a quick search (coffee, cider, haircut, phone charger…). Add a place to search there, like "deli Stockport".
-- Pick an area or tap **Near me** for nearest first. Filters: **Open now**, **Open late**, **Open Sunday**, **Student discount**.
-- Shop cards with open now / closes, distance, what they sell, offers and student discount.
-- Shop page: Directions (Apple Maps), Call, WhatsApp, website, Facebook, what they sell, opening times.
-- **My shopping list**: finds everything in the fewest stops.
-- **Aa Normal text** button for bigger text.
-- **Add your shop** with Free and Plus pricing, and **About**.
-
-Shops are in `src/shops.ts`. The real ones joined through the "Join Simple Zone" form; shops marked `example` are pretend ones that show how a listing looks.
+- `SimpleZoneiOS/`: **the iPhone app** (open `SimpleZone.xcodeproj` in Xcode, scheme "SimpleZone").
+  - Its screens are built in (`SimpleZone/Web`), so it opens without the website.
+- `src/`: the app's screens.
+  - Home, Search, business page, Zonie card wallet, About/Privacy.
+  - The style: teal `#0F5E63`, orange `#D35F1A`, Dark Mode, bigger text, VoiceOver.
+- **Business details** come only from the published "Simplezone live" Google Sheet, public details only. Set the link in `src/sheet.ts` (`SHEET_CSV_URL`).
+- `HANDOVER.md`: where the work is up to.
+- `APP-STORE-PRIVACY.md`: draft App Store privacy answers.
 
 ## Run
 
 ```sh
 npm install
-npm run dev      # in a browser
-npm test         # opening hours, search and shopping list tests
-npm run ios      # build, copy into the iPhone project and open Xcode (Mac only)
+npm run dev         # the screens in a browser
+npm test            # opening hours, sheet and search tests
+npm run ios:native  # build the screens into SimpleZoneiOS/SimpleZone/Web (run after any change to src/)
 ```
 
-## iPhone build
+Then open `SimpleZoneiOS/SimpleZone.xcodeproj` in Xcode and press Play.
 
-- **Simple Zone iOS** (GitHub Actions) builds the app, runs it in an iPhone simulator and saves screenshots.
-- **Simple Zone TestFlight** (run by hand from the Actions tab) uploads a build to TestFlight. It uses the same App Store Connect secrets as Fillkin. Create the app in App Store Connect first with the bundle ID `com.auroraglance.simplezone`.
+## Checks
 
-## Brand
-
-- `assets/sz-mark.svg`: the SZ mark as a vector (app icon and header)
-- `assets/icon-only.png`: the 1024×1024 app icon made from it
-- Teal `#04A4A2` (the S), navy `#0A2551` (the Z); app colours from the website: header teal `#0B5759`, orange `#C5530D`
+- **Simple Zone iOS** (GitHub Actions) builds the iPhone app on a Mac and photographs every screen on a small and a large iPhone, in light and dark.
+- Nothing is uploaded to TestFlight or the App Store from this repo.

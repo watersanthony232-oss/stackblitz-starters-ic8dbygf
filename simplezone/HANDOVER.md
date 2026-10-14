@@ -166,6 +166,36 @@ Tony chose **B**: the real Xcode project (`SimpleZoneiOS`, from the 03:02 zip) n
 **Installed / removed**
 - Nothing installed. Removed from the real project: the camera and photo permission prompts, and loading the live website.
 
+## Old-style Simple Zone deleted – 14 Oct 2026, 03:31 UTC
+
+Tony: "delete all existence of old style sz".
+
+**Removed from the repo (this branch)**
+- `simplezone/ios/`: the old Capacitor iPhone copy, including its old icon set and splash images.
+- `simplezone/capacitor.config.ts`, and the Capacitor packages (`@capacitor/core`, `@capacitor/ios`, `@capacitor/cli`).
+- `@fontsource/roboto`: the old font.
+- `simplezone/src/shops.ts`: the old built-in business list, including the 6 pretend "example" businesses and Holistic Directions. Businesses now come only from the sheet.
+  - The tests use made-up "Test …" businesses in the sheet layout instead.
+- `simplezone/public/privacy.html` and `support.html`: old-style pages. The app links to https://auroraglance.com/simplezone/privacy instead.
+- `simplezone/assets/icon-only.png`: the old Capacitor icon source.
+- `.github/workflows/simplezone-testflight.yml`: it uploaded the old copy. A new one would be made only when Tony says yes to TestFlight.
+- README rewritten for the new app. The "Student discount" filter code is gone (no student discount column in the sheet).
+
+**Kept**
+- `SimpleZoneiOS/` (the real app).
+- `src/` (the new screens).
+- `assets/sz-mark.svg` / `.jpg` (the SZ logo).
+- `public/favicon.svg`.
+- `HANDOVER.md` (history).
+
+**Still exists elsewhere (not deleted; Tony to say)**
+1. **Git history:** older commits on this branch still contain the old files, as every history does. Removing them would mean rewriting history.
+2. **The GitHub branch `claude/blissful-ritchie-h3zmvh`:** the old-style app before today's work. I can delete it on Tony's yes.
+3. **Tony's Mac and OneDrive:** older SimpleZone copies (the ones with the orange-pin icon). Only Tony can delete those.
+
+**Installed / removed**
+- Removed: the 3 Capacitor packages and Roboto (`npm uninstall`). Nothing installed.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.

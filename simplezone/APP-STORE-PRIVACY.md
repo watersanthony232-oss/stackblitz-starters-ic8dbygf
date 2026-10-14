@@ -1,7 +1,7 @@
 # Simple Zone – draft App Store privacy answers
 
 **DRAFT for Tony to check. Nothing has been entered in App Store Connect.**
-These answers describe the iPhone app as built on 14 Oct 2026 (branch `claude/wonderful-mendel-9hc164`).
+These answers describe the iPhone app `SimpleZoneiOS` as built on 14 Oct 2026 (branch `claude/wonderful-mendel-9hc164`).
 If the app changes (Zonie stamps, Zonie Ads, accounts, analytics), they must be redone.
 
 ## App Privacy (App Store Connect › App Privacy)
@@ -20,7 +20,7 @@ Apple counts data as "collected" only when it leaves the phone and is kept longe
 | Business list | Downloaded, not sent | The app downloads the published "Simplezone live" sheet. Nothing about the user is sent with it. |
 | Call / WhatsApp / Maps / website buttons | Opens another app | Phone, WhatsApp, Maps and Safari have their own privacy policies. Simple Zone sends nothing. |
 
-- No accounts, no sign-in, no analytics, no crash-reporting service, no adverts and no third-party SDKs (only Capacitor, which collects nothing).
+- No accounts, no sign-in, no analytics, no crash-reporting service, no adverts and no third-party SDKs: the app uses only Apple's own frameworks (SwiftUI, WebKit, Core Location).
 
 **Data Used to Track You:** none. **Data Linked to You:** none. **Data Not Linked to You:** none.
 
@@ -31,18 +31,17 @@ Apple counts data as "collected" only when it leaves the phone and is kept longe
 - **Does the app track users?** No.
 - The app never shows the "Allow tracking?" prompt, has no tracking domains, and `NSPrivacyTracking` is `false`.
 
-## Privacy manifest (`ios/App/App/PrivacyInfo.xcprivacy`)
+## Privacy manifest (`SimpleZoneiOS/SimpleZone/PrivacyInfo.xcprivacy`)
 
 - `NSPrivacyTracking`: false
 - `NSPrivacyTrackingDomains`: none
 - `NSPrivacyCollectedDataTypes`: none
 - `NSPrivacyAccessedAPITypes`: none
-  - The app's own code uses no "required reason" APIs.
-  - Capacitor includes its own manifest, which also lists none.
+  - The app uses no "required reason" APIs and no third-party code.
 
 ## Permission prompt the user sees
 
-**Location (When In Use):** "Simple Zone uses your location only when you tap Near me, to show the nearest businesses first. It is not stored or sent anywhere."
+**Location (When In Use):** "Shows the nearest businesses first when you tap Near me. Your location stays on your phone."
 
 ## Other App Store Connect answers
 

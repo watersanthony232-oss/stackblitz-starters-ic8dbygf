@@ -2,9 +2,9 @@
 
 import { AREAS, miles, sameArea, type Area } from './areas';
 import { opensLate, opensSunday, openState } from './hours';
-import type { Shop } from './shops';
+import type { Shop } from './business';
 
-export type Filters = { openNow?: boolean; openLate?: boolean; openSunday?: boolean; student?: boolean };
+export type Filters = { openNow?: boolean; openLate?: boolean; openSunday?: boolean };
 export type Place = { lat: number; lon: number };
 export type Result = { shop: Shop; matched: string[]; distance?: number };
 
@@ -58,7 +58,6 @@ export function passes(shop: Shop, f: Filters, now = new Date()): boolean {
   if (f.openNow && !openState(h!, now).open) return false;
   if (f.openLate && !opensLate(h!, now)) return false;
   if (f.openSunday && !opensSunday(h!)) return false;
-  if (f.student && !shop.studentDiscount) return false;
   return true;
 }
 
@@ -85,7 +84,6 @@ export function search(
     if (from && (a.distance === undefined) !== (b.distance === undefined)) return a.distance === undefined ? 1 : -1;
     if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
     if (!!a.shop.plus !== !!b.shop.plus) return a.shop.plus ? -1 : 1;
-    if (!!a.shop.example !== !!b.shop.example) return a.shop.example ? 1 : -1;
     return a.shop.name.localeCompare(b.shop.name);
   });
   return out;

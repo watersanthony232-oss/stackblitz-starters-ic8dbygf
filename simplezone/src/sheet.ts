@@ -3,7 +3,7 @@
 
 import { findArea } from './areas';
 import { parseHours } from './hours';
-import type { Shop } from './shops';
+import type { Shop } from './business';
 
 /**
  * The sheet's "Publish to web" CSV link (starts https://docs.google.com/spreadsheets/d/e/2PACX-…).

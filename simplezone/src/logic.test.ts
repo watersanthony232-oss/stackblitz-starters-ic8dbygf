@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { findArea } from './areas';
 import { formatTime, openLabel, openState, week } from './hours';
 import { matchShop, planStops, search, splitArea } from './search';
-import { SHOPS, type Shop } from './shops';
+import type { Shop } from './business';
+import { parseCsv, rowsToShops } from './sheet';
 
 // 14 Oct 2026 is a Wednesday; October is British Summer Time (UTC+1).
 const at = (iso: string) => new Date(iso);
@@ -41,6 +42,15 @@ describe('hours', () => {
 
 describe('search', () => {
   const now = at('2026-10-14T13:00:00Z');
+  // Made-up businesses for these tests only, in the same layout as the "Simplezone live" sheet.
+  const CSV = `Name,Area,Category,What they sell,Opening hours,Whatsapp,Phone ,Website,Plus
+Test Pub,Freemantle,Pub,"cider, thatchers cider, real ale",Mon-Thu 12-23; Fri-Sat 12-24; Sun 12-10:30pm,,,,No
+Test Cafe,Portswood,Café,"coffee, tea, cakes, breakfast",Daily 8-17,,,,No
+Test Phone Repairs,Shirley,Phone repairs,"phone charger, screen repair, cases",Mon-Sat 9-17; Sun 10-16,,,,No
+Test Massage,Harefield,Wellbeing,"massage, sports massage",Mon-Fri 8-20,,,,Yes
+Test Barber,Nowhere,Hair,haircut,By appointment,,,,No`;
+  const BUSINESSES = rowsToShops(parseCsv(CSV)).shops;
+  const byName = (name: string) => BUSINESSES.find((s) => s.name === name)!;
 
   it('splits the area out of the search', () => {
     expect(splitArea('deli Stockport')).toEqual({ what: 'deli', area: findArea('Stockport') });
@@ -48,34 +58,42 @@ describe('search', () => {
     expect(splitArea('coffee').area).toBeUndefined();
   });
 
-  it('matches what shops sell, plurals too', () => {
-    const phone = SHOPS.find((s) => s.id === 'example-phone-shop')!;
+  it('matches what businesses sell, plurals too', () => {
+    const phone = byName('Test Phone Repairs');
     expect(matchShop(phone, 'phone chargers')).toEqual(['phone charger']);
     expect(matchShop(phone, 'bread')).toBeNull();
   });
 
-  it('finds every cider shop, nearest first', () => {
-    const shirley = findArea('Shirley')!;
-    const r = search(SHOPS, { what: 'cider', near: shirley, now });
-    expect(r.map((x) => x.shop.id)).toEqual(['example-pub']);
+  it('finds every cider business, nearest first', () => {
+    const r = search(BUSINESSES, { what: 'cider', near: findArea('Shirley')!, now });
+    expect(r.map((x) => x.shop.name)).toEqual(['Test Pub']);
     expect(r[0].matched).toContain('thatchers cider');
     expect(r[0].distance).toBeGreaterThan(0);
   });
 
-  it('puts Plus shops near the top of an area', () => {
-    const extra: Shop = { ...SHOPS[1], id: 'x', name: 'A Massage Place', plus: false, area: 'Harefield', lat: 50.92, lon: -1.346, sells: ['massage'] };
-    const r = search([extra, ...SHOPS], { what: 'massage', area: findArea('Harefield'), now });
-    expect(r[0].shop.id).toBe('holistic-directions');
+  it('puts unknown places after known ones when sorting by distance', () => {
+    const r = search(BUSINESSES, { what: '', near: findArea('Shirley')!, now });
+    expect(r[0].shop.name).toBe('Test Phone Repairs');
+    expect(r[r.length - 1].shop.name).toBe('Test Barber');
+    expect(r[r.length - 1].distance).toBeUndefined();
   });
 
-  it('filters by student discount and open Sunday', () => {
-    const r = search(SHOPS, { what: '', filters: { student: true, openSunday: true }, now });
-    expect(r.map((x) => x.shop.id).sort()).toEqual(['example-cafe', 'example-phone-shop']);
+  it('puts Plus businesses near the top of an area', () => {
+    const extra: Shop = { ...byName('Test Massage'), id: 'x', name: 'A Massage Place', plus: false };
+    const r = search([extra, ...BUSINESSES], { what: 'massage', area: findArea('Harefield'), now });
+    expect(r[0].shop.name).toBe('Test Massage');
+  });
+
+  it('filters by open Sunday, and never guesses unknown hours', () => {
+    const r = search(BUSINESSES, { what: '', filters: { openSunday: true }, now });
+    expect(r.map((x) => x.shop.name).sort()).toEqual(['Test Cafe', 'Test Phone Repairs', 'Test Pub']);
+    const open = search(BUSINESSES, { what: '', filters: { openNow: true }, now });
+    expect(open.map((x) => x.shop.name)).not.toContain('Test Barber');
   });
 
   it('plans a shopping list in the fewest stops', () => {
-    const { stops, missing } = planStops(SHOPS, ['coffee', 'cakes', 'phone charger', 'unicorn']);
-    expect(stops.map((s) => s.shop.id)).toEqual(['example-cafe', 'example-phone-shop']);
+    const { stops, missing } = planStops(BUSINESSES, ['coffee', 'cakes', 'phone charger', 'unicorn']);
+    expect(stops.map((s) => s.shop.name)).toEqual(['Test Cafe', 'Test Phone Repairs']);
     expect(missing).toEqual(['unicorn']);
   });
 });
