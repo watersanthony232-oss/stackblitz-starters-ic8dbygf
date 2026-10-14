@@ -216,18 +216,33 @@ select.chip { padding-right: 10px; max-width: 70%; }
 .cta h2 { color: var(--on-brand); margin: 0 0 6px; font-size: 1.15rem; }
 .cta p { margin: 0 0 14px; color: #dfe6f2; }
 
-/* ---------- Zonie Ads: "Today's offers" (only when switched on) ---------- */
+/* ---------- Zonie Ads: "Today's offers" (only when switched on), in the SZ logo's navy and teal ---------- */
+:root { --sz-navy: #0a2551; --sz-teal: #04a4a2; }
 .offers-head { display: flex; align-items: center; gap: 12px; margin: 22px 0 8px; }
-.offers-head h2 { margin: 0; }
+.offers-head h2 { margin: 0; color: var(--sz-navy); }
+@media (prefers-color-scheme: dark) { .offers-head h2 { color: #ffffff; } }
 /* Tony's Zonie Ads logo (white background), on a rounded tile so it also sits well in Dark Mode. */
 .zonie-ads-logo { width: 56px; height: auto; border-radius: 10px; background: #ffffff; flex: none; }
 .offers { display: flex; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 6px; scrollbar-width: none; }
 .offers::-webkit-scrollbar { display: none; }
-.offer { flex: none; width: 70%; max-width: 280px; text-align: left; background: var(--tint); color: var(--tint-ink); border: 0; border-radius: 16px; padding: 12px 14px; }
+.offer {
+  flex: none;
+  width: 70%;
+  max-width: 280px;
+  text-align: left;
+  background: var(--sz-navy);
+  color: #ffffff;
+  border: 1.5px solid var(--sz-navy);
+  border-left: 6px solid var(--sz-teal);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+@media (prefers-color-scheme: dark) { .offer { border-color: var(--sz-teal); } }
 .offer img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
-.offer-from { display: block; font-size: 0.85rem; }
-.offer-text { display: block; font-weight: var(--thick); font-size: 1.05rem; color: var(--strong); }
-.offerbox { background: var(--tint); color: var(--tint-ink); border-radius: 10px; padding: 8px 12px; margin: 10px 0; }
+.offer-from { display: block; font-size: 0.85rem; color: var(--sz-teal); font-weight: var(--thick); }
+.offer-text { display: block; font-weight: var(--thick); font-size: 1.05rem; color: #ffffff; }
+.offerbox { background: var(--sz-navy); color: #ffffff; border-left: 6px solid var(--sz-teal); border-radius: 10px; padding: 10px 14px; margin: 10px 0; }
+.offerbox b { color: var(--sz-teal); }
 
 /* ---------- Business page ---------- */
 .back { background: none; border: 0; padding: 6px 0; min-height: 44px; color: var(--strong); text-decoration: underline; font-size: 1.05rem; }

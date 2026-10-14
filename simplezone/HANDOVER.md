@@ -354,6 +354,14 @@ Tony didn't know how Zonie Ads would work, so I proposed a plan. **Tony: "yes go
 - `ZONIE_ADS_ENABLED` is still **false**, so the app shows nothing about ads.
   - The build still copies the small logo file into `SimpleZone/Web/assets`, but nothing refers to it.
 
+## Zonie Ads in SZ navy and teal (still switched off) – 14 Oct 2026, 07:11 UTC
+
+- Tony: "I want zonie ads all in navy teal too to match sz".
+- **Offer cards:** SZ navy `#0A2551` with white offer text, "Offer from …" in SZ teal `#04A4A2` (4.9:1), and a teal left edge. In Dark Mode they also get a teal border.
+- **"Today's offers" heading:** navy (white in Dark Mode).
+- **Business-page "Offer:" box:** navy with a teal "Offer:" label and teal edge.
+- Checked light and dark in a test copy with ads on. `ZONIE_ADS_ENABLED` is still false.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
