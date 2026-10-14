@@ -16,7 +16,8 @@ const mark = `<svg viewBox="228 203 1040 610" role="img" aria-label="Simple Zone
 
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
-const qr = await QRCode.toString(URL, { type: 'svg', errorCorrectionLevel: 'H', margin: 0, color: { dark: '#11244E', light: '#FFFFFF' } });
+// A plain picture, not SVG: some phone PDF viewers leave SVG drawings out.
+const qr = await QRCode.toDataURL(URL, { errorCorrectionLevel: 'H', margin: 0, width: 1400, color: { dark: '#11244E', light: '#FFFFFF' } });
 
 function page({ name, category, area }) {
   const sub = [category, area].filter(Boolean).map(esc).join(' · ');
@@ -34,7 +35,7 @@ html, body { width: 210mm; height: 297mm; font-family: -apple-system, "Helvetica
 .name { font-size: ${name.length > 22 ? 30 : 38}pt; font-weight: 800; line-height: 1.1 }
 .sub { font-size: 16pt; color: #377D7B; font-weight: 600; margin-top: 3mm }
 .qr { width: 78mm; height: 78mm; margin-top: 9mm; padding: 4mm; border: 1.2mm solid #377D7B; border-radius: 5mm }
-.qr svg { width: 100%; height: 100% }
+.qr img { width: 100%; height: 100%; display: block; image-rendering: pixelated }
 .scan { font-size: 17pt; font-weight: 700; margin-top: 5mm }
 .url { font-size: 14pt; color: #377D7B; margin-top: 1.5mm }
 .what { font-size: 13pt; color: #293436; margin-top: 6mm; line-height: 1.5 }
@@ -43,7 +44,7 @@ html, body { width: 210mm; height: 297mm; font-family: -apple-system, "Helvetica
 <div class="top"><div class="tile"><img src="${logo}" alt="Simple Zone logo"></div><div class="find">Find us on</div><div class="sz">Simple Zone</div></div>
 <div class="mid">
 ${name ? `<div class="name">${esc(name)}</div>` : ''}${sub ? `<div class="sub">${sub}</div>` : ''}
-<div class="qr">${qr}</div>
+<div class="qr"><img src="${qr}" alt="QR code for ${URL_TEXT}"></div>
 <div class="scan">Scan to find local businesses near you</div>
 <div class="url">${URL_TEXT}</div>
 <div class="what">Opening hours · open now · nearest first · directions</div>
@@ -55,8 +56,8 @@ ${name ? `<div class="name">${esc(name)}</div>` : ''}${sub ? `<div class="sub">$
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
 // The logo goes in as a plain picture (some PDF viewers draw the SVG cut-out wrongly).
 const lp = await browser.newPage({ viewport: { width: 1040, height: 610 }, deviceScaleFactor: 2 });
-await lp.setContent(`<style>*{margin:0}body{background:#fff}svg{display:block;width:1040px;height:610px}</style>${mark}`);
-const logo = `data:image/png;base64,${(await lp.screenshot({ omitBackground: false })).toString('base64')}`;
+await lp.setContent(`<style>*{margin:0}body{background:transparent}svg{display:block;width:1040px;height:610px}</style>${mark}`);
+const logo = `data:image/png;base64,${(await lp.screenshot({ omitBackground: true })).toString('base64')}`;
 await lp.close();
 const ctx = await browser.newContext({ viewport: { width: 794, height: 1123 }, deviceScaleFactor: 1 });
 fs.mkdirSync(out, { recursive: true });

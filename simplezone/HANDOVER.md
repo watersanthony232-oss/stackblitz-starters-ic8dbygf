@@ -442,3 +442,9 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 ## iPhone check passed – 14 Oct 2026, 07:36 UTC (08:36 UK)
 
 - "Simple Zone iOS" run 30 (commit 5bdc66c, "ready to publish") **passed**. It finished 07:29 UTC. Later commits only change the sheet notes, HANDOVER and posters, not the app.
+
+## Poster QR fix – 14 Oct 2026, 07:41 UTC (08:41 UK)
+
+- Tony: "didn't see a qr". His phone's PDF viewer leaves out SVG drawings.
+- **Fix:** the QR code is now a plain picture (1400 px), and the logo is a see-through PNG, which removes the faint edge.
+- Each PDF now has just 2 pictures plus text. The QR codes were checked by scanning the PDF pages themselves, and all 3 open https://simplezone.auroraglance.com.
