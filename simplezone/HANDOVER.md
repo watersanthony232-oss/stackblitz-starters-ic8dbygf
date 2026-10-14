@@ -258,6 +258,23 @@ Tony ran the new app: "old logo then new then old at the top in wrong colours".
   - White status bar set.
 - Nothing uploaded to TestFlight or the App Store.
 
+## Tony ran it on his Mac – 14 Oct 2026, 06:23 UTC
+
+- **Tony ran the Android-look zip (20261014-0602UTC) in Xcode** on the iPhone 18 Pro simulator (iOS 27). His verdict: "all ok".
+- **What his Xcode screenshot showed:**
+  - The right project (Web, LaunchScreen and PrivacyInfo listed).
+  - "Running Simple Zone on iPhone 18 Pro".
+  - One yellow warning (not identified yet).
+  - Two console lines that are normal simulator noise: "Could not resolve UID for user mobile" and "WebContent … Unable to hide query parameters".
+- **The Simulator window opened behind Xcode.** That's normal; it's a separate app (Dock icon).
+
+**Next steps**
+1. Tony sends the "Simplezone live" Publish-to-web CSV link. Then set `SHEET_CSV_URL`, re-test with the real businesses, and send a new zip.
+2. Tony sends the th2os modern font files (optional; the iPhone's font is used until then).
+3. Tony decides how Zonie stamps get added (the wallet says "Coming soon" until then).
+4. Test on a real iPhone (Tony is looking at a refurbished iPhone SE 2nd gen) before any TestFlight.
+5. TestFlight / App Store only after Tony's clear "yes". A new upload workflow for `SimpleZoneiOS` would be needed first.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
