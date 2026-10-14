@@ -8,6 +8,7 @@ import {
   TAGLINE,
   WHATSAPP,
   WHATSAPP_SHOWN,
+  ZONIE_ADS_ENABLED,
   ZONIE_CARD_SIZE,
   ZONIE_STAMPS_LIVE,
 } from './config';
@@ -16,6 +17,7 @@ import { planStops, search, splitArea, type Filters, type Place } from './search
 import { loadSheet, type SheetResult } from './sheet';
 import type { Shop } from './business';
 import { runTour, TOUR_CSV } from './tour';
+import { activeAds } from './ads';
 
 // Laid out like the Simple Zone website on Android (simplezone.auroraglance.com, 14 Oct 2026).
 
@@ -188,6 +190,7 @@ function homePage(): string {
       ${filterChip('openSunday', 'Open Sunday', f.openSunday)}
     </div>
     ${dataBanner()}
+    ${offersStrip(all)}
     ${
       all.length
         ? `<p class="count" role="status">${count}</p>
@@ -199,6 +202,26 @@ function homePage(): string {
       <p>Put your business on Simple Zone for free. Customers can find what you sell, see when you're open and get in touch.</p>
       <button class="btn-teal" data-go="join">Add your business</button>
     </section>`;
+}
+
+/** Zonie Ads: "Today's offers" from Plus businesses (only when ZONIE_ADS_ENABLED). */
+function offersStrip(all: Shop[]): string {
+  if (!ZONIE_ADS_ENABLED) return '';
+  const ads = activeAds(all);
+  if (!ads.length) return '';
+  return `
+    <h2>Today's offers</h2>
+    <div class="offers" role="list">
+      ${ads
+        .map(
+          (s) => `<button class="offer" role="listitem" data-business="${esc(s.id)}">
+        ${s.ad!.photo ? `<img src="${esc(s.ad!.photo)}" alt="" loading="lazy">` : ''}
+        <span class="offer-from">Offer from ${esc(s.name)}</span>
+        <span class="offer-text">${esc(s.ad!.text)}</span>
+      </button>`,
+        )
+        .join('')}
+    </div>`;
 }
 
 function filterChip(key: keyof Filters, label: string, on?: boolean) {
@@ -260,6 +283,7 @@ function businessPage(id: string): string {
       <h1 tabindex="-1">${esc(shop.name)}${shop.plus ? ' <span class="badge plus">PLUS</span>' : ''}</h1>
       <p class="meta">${esc([shop.category, shop.area].filter(Boolean).join(' · '))}</p>
       <p>${openLine(shop)}</p>
+      ${ZONIE_ADS_ENABLED && activeAds([shop]).length ? `<div class="offerbox"><b>Offer:</b> ${esc(shop.ad!.text)}</div>` : ''}
       ${actions ? `<div class="actions">${actions}</div>` : ''}
       ${
         shop.sells.length

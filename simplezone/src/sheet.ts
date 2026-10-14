@@ -72,6 +72,29 @@ export function cleanWebsite(v: string): string | undefined {
   }
 }
 
+/** "31/10/2026", "31/10/26" or "2026-10-31" -> "2026-10-31". Anything else: undefined (no ad shown). */
+export function parseAdEnds(v: string): string | undefined {
+  const t = v.trim();
+  let y: number, m: number, d: number;
+  let r = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t);
+  if (r) [y, m, d] = [Number(r[1]), Number(r[2]), Number(r[3])];
+  else if ((r = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(t))) {
+    [d, m, y] = [Number(r[1]), Number(r[2]), Number(r[3])];
+    if (y < 100) y += 2000;
+  } else return undefined;
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (date.getUTCFullYear() !== y || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return undefined;
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+/** A Zonie Ad needs text and a valid end date. Photos must be https links. */
+function readAd(text: string, photo: string, ends: string): Shop['ad'] {
+  const end = parseAdEnds(ends);
+  if (!text || !end) return undefined;
+  const link = cleanWebsite(photo);
+  return { text, ends: end, photo: link && link.startsWith('https://') ? link : undefined };
+}
+
 const slug = (s: string) =>
   s
     .toLowerCase()
@@ -89,6 +112,9 @@ const COLUMNS = {
   phone: 'phone',
   website: 'website',
   plus: 'plus',
+  adText: 'ad text',
+  adPhoto: 'ad photo link',
+  adEnds: 'ad ends',
 } as const;
 
 /**
@@ -141,6 +167,7 @@ export function rowsToShops(rows: string[][]): { shops: Shop[]; skipped: number 
         whatsapp: cleanPhone(get('whatsapp')),
         website: cleanWebsite(get('website')),
         plus: /^(yes|y|true|plus)$/i.test(get('plus')),
+        ad: readAd(get('adText'), get('adPhoto'), get('adEnds')),
       });
     } catch {
       skipped++;

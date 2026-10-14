@@ -78,7 +78,7 @@ h2 { font-size: 1.2rem; margin: 22px 0 8px; }
   align-items: center;
   flex-wrap: wrap; /* with very large text, the links move under the name instead of being cut off */
   gap: 10px;
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px 12px;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 12px;
   position: sticky;
   top: 0;
   z-index: 5;
@@ -87,9 +87,9 @@ h2 { font-size: 1.2rem; margin: 22px 0 8px; }
 /* The SZ logo in its own colours, on a white tile (as on the website). */
 .brand .mark { width: 40px; height: 40px; border-radius: 10px; background: #ffffff; display: grid; place-items: center; flex: none; }
 .hdr-mark { width: 32px; height: auto; }
-.brand b { font-size: 1.3rem; font-weight: var(--thick); white-space: nowrap; }
+.brand b { font-size: 1.2rem; font-weight: var(--thick); white-space: nowrap; }
 .toplinks { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.toplinks button { background: none; border: 0; color: var(--on-brand); padding: 3px 0; font-size: 0.95rem; min-height: 28px; white-space: nowrap; }
+.toplinks button { background: none; border: 0; color: var(--on-brand); padding: 3px 0; font-size: 0.9rem; min-height: 28px; white-space: nowrap; }
 
 main { padding: 14px 20px calc(env(safe-area-inset-bottom, 0px) + 28px); max-width: 640px; margin: 0 auto; }
 
@@ -215,6 +215,15 @@ select.chip { padding-right: 10px; max-width: 70%; }
 .cta { background: var(--navy); color: var(--on-brand); border-radius: 16px; padding: 18px; margin: 24px 0 0; }
 .cta h2 { color: var(--on-brand); margin: 0 0 6px; font-size: 1.15rem; }
 .cta p { margin: 0 0 14px; color: #dfe6f2; }
+
+/* ---------- Zonie Ads: "Today's offers" (only when switched on) ---------- */
+.offers { display: flex; gap: 10px; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 6px; scrollbar-width: none; }
+.offers::-webkit-scrollbar { display: none; }
+.offer { flex: none; width: 70%; max-width: 280px; text-align: left; background: var(--tint); color: var(--tint-ink); border: 0; border-radius: 16px; padding: 12px 14px; }
+.offer img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 10px; margin-bottom: 8px; }
+.offer-from { display: block; font-size: 0.85rem; }
+.offer-text { display: block; font-weight: var(--thick); font-size: 1.05rem; color: var(--strong); }
+.offerbox { background: var(--tint); color: var(--tint-ink); border-radius: 10px; padding: 8px 12px; margin: 10px 0; }
 
 /* ---------- Business page ---------- */
 .back { background: none; border: 0; padding: 6px 0; min-height: 44px; color: var(--strong); text-decoration: underline; font-size: 1.05rem; }

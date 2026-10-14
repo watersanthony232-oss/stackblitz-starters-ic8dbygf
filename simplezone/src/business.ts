@@ -20,4 +20,15 @@ export type Shop = {
   whatsapp?: string;
   website?: string;
   plus?: boolean;
+  /** Zonie Ad (Plus businesses only, one at a time). Shown only when ZONIE_ADS_ENABLED is true. */
+  ad?: ZonieAd;
+};
+
+export type ZonieAd = {
+  /** One short line, e.g. "2 coffees for £5 this week". */
+  text: string;
+  /** Optional photo (https only). */
+  photo?: string;
+  /** Last day of the offer (UK date, YYYY-MM-DD). It disappears the day after. */
+  ends: string;
 };

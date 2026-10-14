@@ -318,6 +318,33 @@ Tony asked about Apple testing and releasing. I listed what Apple often rejects;
 4. The app record in App Store Connect with bundle ID `com.auroraglance.simplezone`.
 5. A clear "yes, upload to TestFlight". A new upload workflow for SimpleZoneiOS is needed, using the existing App Store Connect key (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `APPLE_TEAM_ID`, `ASC_KEY_P8`).
 
+## Zonie plan agreed, and Zonie Ads built (switched off) – 14 Oct 2026, 07:04 UTC
+
+Tony didn't know how Zonie Ads would work, so I proposed a plan. **Tony: "yes go with that plan".**
+
+**The plan**
+- **Version 1.0 (App Store):** businesses, search and Near me. **No Zonie** (hidden).
+- **Version 1.1, Zonie Ads:** one offer per **Plus** business.
+  - Three new sheet columns: **Ad text**, **Ad photo link** (https), **Ad ends** (e.g. 31/10/2026).
+  - Tony checks each ad before typing it in.
+  - It shows in a "Today's offers" strip on Home and an "Offer:" box on the business page, labelled "Offer from <business>".
+  - It disappears after its end date (UK time).
+  - No tracking; everyone sees the same offers; no view counts.
+- **Version 1.2, Zonie stamps:**
+  - Each business has a printed QR sticker signed with a secret key only Tony holds. The app checks the signature offline.
+  - One stamp per business per day per phone.
+  - At 10 stamps: "Reward ready"; staff scan a second "redeem" sticker to empty the card.
+  - Cards stay on the phone, so they're lost if the app is deleted. Accounts would need a server later.
+
+**Built now, but OFF** (`ZONIE_ADS_ENABLED = false`, so the normal build contains none of it)
+- Code: `src/ads.ts` (`activeAds`, `ukToday`), plus `parseAdEnds` and `readAd` in `src/sheet.ts` and `ad` in `business.ts`.
+- `src/ads.test.ts`: 4 tests (date formats, Plus only, expiry on the last day in UK time, https photos only). **28 tests pass.**
+- Checked in a test copy with ads switched on, light and dark: no errors.
+- To switch on later: add the 3 columns to the sheet and set `ZONIE_ADS_ENABLED = true`.
+  - Then update APP-STORE-PRIVACY.md (still no tracking or data collection) and re-test.
+
+**Also fixed:** the top bar wrapped onto two lines on small iPhones after the large-text change. Now it's one line at 375 and 430 px wide; it wraps only with very large text, with no overflow.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
