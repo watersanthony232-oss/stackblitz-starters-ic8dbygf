@@ -291,6 +291,15 @@ Tony ran the new app: "old logo then new then old at the top in wrong colours".
   - It lists each business in the log.
 - In the iPhone app the phone downloads the sheet itself (only from docs.google.com) and keeps the last good copy for when there's no internet.
 
+## Live-sheet app tested and sent – 14 Oct 2026, 06:58 UTC
+
+- **"Simple Zone iOS" run 23** (commit `5238d50`) **passed.**
+- **Live sheet step:** "Live sheet: 1 businesses, 0 skipped rows" and "- Aurora Glance | Southampton | Apps & websites | hours none".
+- **Simulator step:** every screen showed and the app kept running, small and large iPhone, light and dark.
+- **Sent to Tony:** "Simple Zone iPhone app (Xcode, live sheet) 20261014-0757UK.zip" (07:57 UK time = 06:57 UTC, made from `5238d50`).
+  - icon md5 `91e74b40…`.
+  - The sheet link is in the Web js; no tour code.
+
 **Waiting on Tony** (still open after chunk 4)
 1. Published CSV link for "Simplezone live".
 2. Android look: screenshots or the Android project, or confirm the tab-bar design from the pitch video (Home / Offers / Loyalty / Alerts) is the Android app.
