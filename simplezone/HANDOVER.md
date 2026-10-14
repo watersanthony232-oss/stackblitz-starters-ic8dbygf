@@ -24,7 +24,7 @@ Branch: `claude/wonderful-mendel-9hc164`.
 **Installed / removed**
 - Nothing installed or removed. (`npm ci` run for the existing packages.)
 
-## Chunk 2 – 14 Oct 2026, 02:18–02:27 UTC
+## Chunk 2 – 14 Oct 2026, 02:18–02:25 UTC
 
 Tony said "go": look (a) from the pitch video (white top bar, tabs along the bottom).
 
