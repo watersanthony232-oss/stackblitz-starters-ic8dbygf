@@ -459,3 +459,14 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 2. Support page address and review email (the TODOs in `fastlane/metadata`).
 3. Create the app in App Store Connect (com.auroraglance.simplezone), then the age rating and privacy answers.
 4. Say yes to a pull request to main, then "yes, upload to TestFlight".
+
+## Review email set – 26 Oct 2026, 21:42 UTC (21:42 UK)
+
+- Tony chose hello@auroraglance.com as the contact email for Apple's reviewers. It's now in `fastlane/metadata/review_information/email_address.txt` and ticked off in PUBLISH-CHECKLIST.
+- New form sign-up found: **Windmill Guitars** (Simon, 15 Oct 2026, 16:17 UK). Not on the live sheet yet; waiting on Tony's yes.
+- Matt Bottley Landscapes: no sign-up and no email since 13 Oct.
+
+**Next steps**
+1. Support page address (Tony), then `TODO-SUPPORT-URL` is the last TODO.
+2. Add Windmill Guitars to the sheet when Tony says yes.
+3. The rest of the publishing list in PUBLISH-CHECKLIST.md.

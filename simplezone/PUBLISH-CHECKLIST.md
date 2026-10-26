@@ -23,7 +23,7 @@
 1. **Add more real businesses to the sheet.** With only one, Apple may reject the app for doing too little.
 2. **Check the privacy page is live:** https://auroraglance.com/simplezone/privacy (it must say "We never sell your data").
 3. **Support page address:** replace `TODO-SUPPORT-URL` in `fastlane/metadata/en-GB/support_url.txt`, or tell Claude the address.
-4. **Contact email for Apple's reviewers:** replace `TODO-REVIEW-EMAIL` in `fastlane/metadata/review_information/email_address.txt`, or tell Claude. For example hello@auroraglance.com.
+4. ~~**Contact email for Apple's reviewers**~~ Done 26 Oct 2026: hello@auroraglance.com (Tony's choice).
 5. **Create the app in App Store Connect:**
    1. Go to appstoreconnect.apple.com › Apps › **+** › New App.
    2. Choose iOS, name "Simple Zone", language English (UK).
