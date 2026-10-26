@@ -470,3 +470,14 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
 1. Support page address (Tony), then `TODO-SUPPORT-URL` is the last TODO.
 2. Add Windmill Guitars to the sheet when Tony says yes.
 3. The rest of the publishing list in PUBLISH-CHECKLIST.md.
+
+## Windmill Guitars added to the sheet – 26 Oct 2026, 21:44 UTC (21:44 UK)
+
+- Tony: "windmill yes". Details from Simon's "Join Simple Zone" form response (15 Oct 2026).
+- **Row 5 of "Simplezone live":**
+  - Windmill Guitars · Bangor · Guitar shop · sells 12 guitar items.
+  - Hours "Tue-Wed 11am-5pm, Thu-Sat 10am-5pm".
+  - Phone 028 9122 5324; no WhatsApp; www.windmillguitars.com; Plus: Yes (chose "free for the first year").
+- **Checked with the app's code:** 0 skipped; hours read as closed Sun–Mon, Tue–Wed 11–5, Thu–Sat 10–5; phone keeps its 0.
+- **Note:** the address (51 High Street, BT20 5BE) is Bangor, **Northern Ireland**, outside Hampshire. The app doesn't know Bangor, so "Near me" can't place it; it still shows in the list and in search. Address and student discount (No) left out: the sheet has no columns for them.
+- Still waiting: Tony's "send" for the Matt nudge (it's a Gmail draft); support page address.
