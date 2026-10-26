@@ -480,4 +480,4 @@ Tony: "get it ready to publish". I prepared everything that doesn't upload. **No
   - Phone 028 9122 5324; no WhatsApp; www.windmillguitars.com; Plus: Yes (chose "free for the first year").
 - **Checked with the app's code:** 0 skipped; hours read as closed Sun–Mon, Tue–Wed 11–5, Thu–Sat 10–5; phone keeps its 0.
 - **Note:** the address (51 High Street, BT20 5BE) is Bangor, **Northern Ireland**, outside Hampshire. The app doesn't know Bangor, so "Near me" can't place it; it still shows in the list and in search. Address and student discount (No) left out: the sheet has no columns for them.
-- Still waiting: Tony's "send" for the Matt nudge (it's a Gmail draft); support page address.
+- Matt nudge **sent** 21:44 UTC on Tony's "send" (same thread). Still waiting: support page address; keep or remove Windmill Guitars (Northern Ireland).
